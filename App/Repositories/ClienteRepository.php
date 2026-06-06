@@ -518,14 +518,12 @@ final class ClienteRepository
             WHERE a.ativo = 1 AND b.ativo = 1
               AND a.merged_into_id IS NULL AND b.merged_into_id IS NULL
               AND (
-                (REGEXP_REPLACE(a.celular,'[^0-9]','') != '' AND LENGTH(REGEXP_REPLACE(a.celular,'[^0-9]','')) >= 9
-                  AND (REGEXP_REPLACE(a.celular,'[^0-9]','') = REGEXP_REPLACE(b.celular,'[^0-9]','')
-                    OR REGEXP_REPLACE(a.celular,'[^0-9]','') = REGEXP_REPLACE(b.telefone,'[^0-9]',''))
+                (a.celular_digits != '' AND LENGTH(a.celular_digits) >= 9
+                  AND (a.celular_digits = b.celular_digits OR a.celular_digits = b.telefone_digits)
                 )
                 OR
-                (REGEXP_REPLACE(a.telefone,'[^0-9]','') != '' AND LENGTH(REGEXP_REPLACE(a.telefone,'[^0-9]','')) >= 9
-                  AND (REGEXP_REPLACE(a.telefone,'[^0-9]','') = REGEXP_REPLACE(b.celular,'[^0-9]','')
-                    OR REGEXP_REPLACE(a.telefone,'[^0-9]','') = REGEXP_REPLACE(b.telefone,'[^0-9]',''))
+                (a.telefone_digits != '' AND LENGTH(a.telefone_digits) >= 9
+                  AND (a.telefone_digits = b.celular_digits OR a.telefone_digits = b.telefone_digits)
                 )
               )
             ORDER BY a.id
