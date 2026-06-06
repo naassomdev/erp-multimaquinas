@@ -1,0 +1,60 @@
+// =====================================================================
+// Bootstrap 5.3.8 — import granular
+// Comente módulos não utilizados pra reduzir o bundle final.
+// =====================================================================
+
+// 1. Funções (necessárias antes das variáveis Bootstrap)
+@import 'bootstrap/scss/functions';
+
+// 2. Defaults Bootstrap (para que NOSSAS variáveis em _variables.scss
+//    consigam sobrescrever via !default)
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/variables-dark';
+
+// 3. Maps + mixins
+@import 'bootstrap/scss/maps';
+@import 'bootstrap/scss/mixins';
+
+// 4. Utilities API (gera classes utilitárias customizadas)
+@import 'bootstrap/scss/utilities';
+
+// 5. Reboot/base
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+@import 'bootstrap/scss/type';
+@import 'bootstrap/scss/images';
+@import 'bootstrap/scss/containers';
+@import 'bootstrap/scss/grid';
+
+// 6. Componentes — todos habilitados por padrão (podemos remover depois)
+@import 'bootstrap/scss/tables';
+@import 'bootstrap/scss/forms';
+@import 'bootstrap/scss/buttons';
+@import 'bootstrap/scss/transitions';
+@import 'bootstrap/scss/dropdown';
+@import 'bootstrap/scss/button-group';
+@import 'bootstrap/scss/nav';
+@import 'bootstrap/scss/navbar';
+@import 'bootstrap/scss/card';
+@import 'bootstrap/scss/accordion';
+@import 'bootstrap/scss/breadcrumb';
+@import 'bootstrap/scss/pagination';
+@import 'bootstrap/scss/badge';
+@import 'bootstrap/scss/alert';
+@import 'bootstrap/scss/progress';
+@import 'bootstrap/scss/list-group';
+@import 'bootstrap/scss/close';
+@import 'bootstrap/scss/toasts';
+@import 'bootstrap/scss/modal';
+@import 'bootstrap/scss/tooltip';
+@import 'bootstrap/scss/popover';
+@import 'bootstrap/scss/carousel';
+@import 'bootstrap/scss/spinners';
+@import 'bootstrap/scss/offcanvas';
+@import 'bootstrap/scss/placeholders';
+
+// 7. Helpers (clearfix, position, ratios, etc.)
+@import 'bootstrap/scss/helpers';
+
+// 8. Utilities API output (gera as classes finais .text-*, .bg-*, etc.)
+@import 'bootstrap/scss/utilities/api';

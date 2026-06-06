@@ -1,0 +1,11 @@
+// =====================================================================
+// GLightbox — modais de imagem
+// (usa CSS próprio via JS — aqui só overrides leves)
+// =====================================================================
+
+.glightbox-clean .gclose,
+.glightbox-clean .gprev,
+.glightbox-clean .gnext {
+    background-color: rgba($brand-darker, .55);
+    backdrop-filter: blur(4px);
+}

@@ -1,0 +1,141 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Jobs;
+
+use PDO;
+use RuntimeException;
+
+/**
+ * Handler do job 'notificar_cliente'. Tenta enviar a mensagem via WhatsApp
+ * (Evolution API ou compatível) e/ou SMTP. Se nenhum canal está configurado,
+ * registra em storage/logs/notificacoes.log e devolve sucesso — assim a fila
+ * não fica retentando para sempre num ambiente onde a notificação não foi
+ * habilitada.
+ *
+ * Configuração via .env:
+ *   WHATSAPP_API_URL=https://api.evolution.local
+ *   WHATSAPP_API_KEY=...
+ *   WHATSAPP_INSTANCE=multimaquinas
+ *   MAIL_FROM=naoresponda@multimaquinas.site
+ *   MAIL_FROM_NAME="Multimáquinas Assistência"
+ */
+final class NotificarClienteJob
+{
+    public function __construct(private readonly PDO $pdo) {}
+
+    public function handle(array $payload): void
+    {
+        $telefone = (string)($payload['telefone'] ?? '');
+        $email    = (string)($payload['email']    ?? '');
+        $mensagem = (string)($payload['mensagem'] ?? '');
+        $osId     = (string)($payload['os_id']    ?? '');
+
+        if ($mensagem === '') {
+            throw new RuntimeException('Payload sem mensagem.');
+        }
+
+        $enviou = false;
+
+        if ($telefone !== '') {
+            try {
+                if ($this->enviarWhatsapp($telefone, $mensagem)) {
+                    $enviou = true;
+                    $this->logar("[OS {$osId}] WhatsApp enviado para {$telefone}");
+                }
+            } catch (\Throwable $e) {
+                $this->logar("[OS {$osId}] WhatsApp falhou ({$telefone}): " . $e->getMessage());
+            }
+        }
+
+        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            try {
+                $assunto = "Sua OS #{$osId} foi aberta — Multimáquinas";
+                if ($this->enviarEmail($email, $assunto, $mensagem)) {
+                    $enviou = true;
+                    $this->logar("[OS {$osId}] E-mail enviado para {$email}");
+                }
+            } catch (\Throwable $e) {
+                $this->logar("[OS {$osId}] E-mail falhou ({$email}): " . $e->getMessage());
+            }
+        }
+
+        if (!$enviou) {
+            // Sem canal configurado/funcionando: log e fim. Não retentamos.
+            $this->logar("[OS {$osId}] Nenhum canal disponível — payload registrado:\n" . $mensagem);
+        }
+    }
+
+    private function enviarWhatsapp(string $telefone, string $mensagem): bool
+    {
+        $url      = (string)(getenv('WHATSAPP_API_URL') ?: '');
+        $apiKey   = (string)(getenv('WHATSAPP_API_KEY') ?: '');
+        $instance = (string)(getenv('WHATSAPP_INSTANCE') ?: '');
+
+        if ($url === '' || $apiKey === '' || $instance === '') {
+            return false; // não configurado
+        }
+
+        // Normaliza para formato internacional BR (assume DDD se vier sem 55).
+        $numero = preg_replace('/\D/', '', $telefone) ?? '';
+        if ($numero === '') return false;
+        if (!str_starts_with($numero, '55')) $numero = '55' . $numero;
+
+        $endpoint = rtrim($url, '/') . '/message/sendText/' . rawurlencode($instance);
+        $body = json_encode([
+            'number' => $numero,
+            'text'   => $mensagem,
+        ], JSON_UNESCAPED_UNICODE);
+
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'apikey: ' . $apiKey,
+            ],
+        ]);
+        $response = curl_exec($ch);
+        $code     = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err      = curl_error($ch);
+        curl_close($ch);
+
+        if ($response === false || $code >= 400) {
+            throw new RuntimeException("HTTP {$code} {$err}");
+        }
+        return true;
+    }
+
+    private function enviarEmail(string $para, string $assunto, string $mensagem): bool
+    {
+        $from     = (string)(getenv('MAIL_FROM')      ?: '');
+        $fromName = (string)(getenv('MAIL_FROM_NAME') ?: 'Multimáquinas');
+
+        if ($from === '') return false; // não configurado
+
+        $headers = [
+            'From: ' . sprintf('%s <%s>', $fromName, $from),
+            'Reply-To: ' . $from,
+            'Content-Type: text/plain; charset=UTF-8',
+            'MIME-Version: 1.0',
+        ];
+
+        // mail() é o mínimo viável; em produção considere SMTP via lib dedicada.
+        $ok = @mail($para, '=?UTF-8?B?' . base64_encode($assunto) . '?=', $mensagem, implode("\r\n", $headers));
+        if (!$ok) {
+            throw new RuntimeException('mail() retornou falso (verifique sendmail/SMTP do servidor)');
+        }
+        return true;
+    }
+
+    private function logar(string $linha): void
+    {
+        $dir = (defined('BASE_PATH') ? BASE_PATH : __DIR__ . '/../..') . '/storage/logs';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $path = $dir . '/notificacoes.log';
+        @file_put_contents($path, '[' . date('Y-m-d H:i:s') . '] ' . $linha . "\n", FILE_APPEND);
+    }
+}

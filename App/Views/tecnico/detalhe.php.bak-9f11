@@ -1,0 +1,932 @@
+<?php
+use App\Core\View;
+
+/** @var array $os */
+/** @var array $equip */
+/** @var array<int, array<string, mixed>> $equipamentos_os */
+/** @var array<int, array<string, mixed>> $itens */
+/** @var array<int, string> $fotos */
+/** @var array<int, string> $fotos_recepcao */
+/** @var string $vista */
+/** @var string $csrf_token */
+/** @var array<int, array<string, mixed>> $catalogo_fontes */
+/** @var array|null $orcamento */
+/** @var int $necessidades_pendentes */
+/** @var array{pendentes:int, compradas_sem_entrada:int, manuais_sem_entrada:int, entradas_feitas:int, bloqueantes_total:int} $necessidades_resumo */
+
+$statusEq    = (string) $equip['status_equip'];
+$emGarantia  = (int) $equip['em_garantia'] === 1;
+$tipoGar     = (string) ($equip['tipo_garantia'] ?? '');
+$obsInt      = (string) ($equip['obs_int'] ?? '');
+$obsCli      = (string) ($equip['obs_cli'] ?? '');
+$nomeEquip   = (string) ($equip['nome'] ?? '');
+$serieEquip  = (string) ($equip['serie'] ?? '');
+$defeito     = (string) ($equip['defeito'] ?? '');
+$totalFotos  = count($fotos);
+$totalFotosRecepcao = count($fotos_recepcao);
+$totalItens = count($itens);
+$equipamentosOs = is_array($equipamentos_os ?? null) ? $equipamentos_os : [];
+$totalEquipamentosOs = count($equipamentosOs);
+$equipamentoAtualNumero = (int) $equip['ordem_idx'] + 1;
+
+$badgeCls = match ($statusEq) {
+    'aberta'     => 'status-badge--info',
+    'andamento'  => 'status-badge--warning',
+    'montagem'   => 'status-badge--brand',
+    'pronto'     => 'status-badge--success',
+    'retirado'   => 'status-badge--neutral',
+    'cancelado'  => 'status-badge--danger',
+    'devolvido'  => 'status-badge--neutral',
+    'descartado' => 'status-badge--neutral',
+    default      => 'status-badge--neutral',
+};
+
+$descarteAutorizadoEm  = (string) ($equip['descarte_autorizado_em']  ?? '');
+$descarteAutorizadoPor = (string) ($equip['descarte_autorizado_por'] ?? '');
+$descarteMeio          = (string) ($equip['descarte_meio']           ?? '');
+$descarteExecutadoEm   = (string) ($equip['descarte_executado_em']   ?? '');
+$temDescarteAutorizado = $descarteAutorizadoEm !== '' && $statusEq !== 'descartado';
+$temDescarteExecutado  = $descarteExecutadoEm  !== '' || $statusEq === 'descartado';
+$orcStatus = $orcamento !== null ? (string) ($orcamento['status'] ?? '') : '';
+$mostrarBtnRemontar          = $orcStatus === 'cancelado'
+    && in_array($statusEq, ['aberta', 'andamento'], true)
+    && $descarteAutorizadoEm === '';
+$mostrarBannerDevolucao      = $orcStatus === 'cancelado' && $statusEq === 'montagem';
+$mostrarBannerAguardDev      = $orcStatus === 'cancelado'
+    && $statusEq === 'pronto'
+    && $descarteAutorizadoEm === '';
+$mostrarBtnSemConserto         = in_array($statusEq, ['aberta', 'andamento'], true)
+    && !in_array($orcStatus, ['aprovado', 'pronto', 'retirado', 'cancelado'], true)
+    && $descarteAutorizadoEm === '';
+$mostrarBannerIniciarMontagem  = $orcStatus === 'aprovado'
+    && $statusEq === 'andamento'
+    && $descarteAutorizadoEm === ''
+    && (int) $necessidades_pendentes === 0;
+$mostrarBannerAprovBloqueado   = $orcStatus === 'aprovado'
+    && $statusEq === 'andamento'
+    && $descarteAutorizadoEm === ''
+    && (int) $necessidades_pendentes > 0;
+$mostrarBannerMontagemAndamento = $orcStatus === 'aprovado' && $statusEq === 'montagem';
+// Badge comercial: calculado a partir do status do orçamento do equipamento.
+// Para 'aprovado', diferencia se o equipamento já foi promovido para montagem ou não.
+// Apenas status textual — nenhum valor financeiro é exibido.
+if ($orcStatus === 'aprovado') {
+    if ($statusEq === 'montagem') {
+        [$orcAvisoCls, $orcAvisoIco, $orcAvisoTxt] = [
+            'status-badge--success', 'ph-check-circle', 'Orçamento aprovado — iniciar montagem/conserto',
+        ];
+    } else {
+        [$orcAvisoCls, $orcAvisoIco, $orcAvisoTxt] = [
+            'status-badge--warning', 'ph-clock', 'Orçamento aprovado — verificar estoque/peças antes de montar',
+        ];
+    }
+} else {
+    [$orcAvisoCls, $orcAvisoIco, $orcAvisoTxt] = match ($orcStatus) {
+        'rascunho'  => ['status-badge--neutral',  'ph-pencil',       'Orçamento em elaboração pela recepção'],
+        'enviado'   => ['status-badge--warning',  'ph-clock',        'Orçamento enviado ao cliente — aguardando resposta'],
+        'cancelado' => ['status-badge--danger',   'ph-x-circle',     'Cliente recusou o orçamento — remontar para devolução'],
+        'pronto'    => ['status-badge--brand',    'ph-package',      'Serviço pronto — aguardando retirada'],
+        'retirado'  => ['status-badge--neutral',  'ph-check-square', 'Equipamento retirado pelo cliente'],
+        default     => ['status-badge--neutral',  'ph-minus',        'Sem orçamento administrativo'],
+    };
+}
+
+$osBadgeCls = match ((string) $os['status']) {
+    'aberta'     => 'status-badge--info',
+    'andamento'  => 'status-badge--warning',
+    'pronto'     => 'status-badge--success',
+    'retirado'   => 'status-badge--neutral',
+    'cancelado'  => 'status-badge--danger',
+    'descartado' => 'status-badge--warning',
+    default      => 'status-badge--neutral',
+};
+
+$catalogSourcesJson = json_encode(
+    $catalogo_fontes,
+    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+) ?: '[]';
+?>
+
+<div class="tecnico-page d-flex flex-column gap-4"
+     data-os-id="<?= View::e((string) $os['id']) ?>"
+     data-equip-idx="<?= (int) $equip['ordem_idx'] ?>"
+     data-equip-nome="<?= View::e($nomeEquip) ?>"
+     data-equip-serie="<?= View::e($serieEquip) ?>"
+     data-equip-defeito="<?= View::e($defeito) ?>">
+
+    <div class="page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 pb-3 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="badge bg-dark fs-6">OS <?= View::e((string) $os['id']) ?></span>
+                <span class="status-badge <?= $osBadgeCls ?> py-1 px-3">OS <?= View::e((string) $os['status']) ?></span>
+            </div>
+            <h1 class="page-header__title fs-3 mt-2 mb-0">
+                <?= View::e($nomeEquip !== '' ? $nomeEquip : 'Equipamento sem nome') ?>
+                <small class="text-muted fs-6 d-block d-md-inline ms-md-2">(<?= $totalEquipamentosOs > 0 ? $equipamentoAtualNumero . ' de ' . $totalEquipamentosOs : 'Equipamento' ?>)</small>
+            </h1>
+        </div>
+        <div class="page-header__actions d-flex gap-2">
+            <a href="/tecnico/catalogo-fontes" class="btn btn-outline-secondary btn-sm">
+                <i class="ph ph-sliders me-1"></i> Fontes PDF
+            </a>
+            <a href="/tecnico" class="btn btn-outline-secondary btn-sm">
+                <i class="ph ph-arrow-left me-1"></i> Voltar
+            </a>
+            <a href="/dashboard" class="btn btn-outline-secondary btn-sm d-none d-md-inline-block">
+                <i class="ph ph-squares-four me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div id="toast" class="alert alert-success alert-dismissible position-fixed top-0 end-0 m-3" style="z-index:1070" hidden>
+        <span id="toast-msg"></span>
+        <button type="button" class="btn-close" onclick="this.parentElement.hidden=true"></button>
+    </div>
+
+    <div class="tecnico-active-equip-meta d-flex flex-wrap align-items-center gap-2 mt-1">
+        <span class="status-badge <?= $badgeCls ?> fs-6 py-1 px-3" id="status-kpi-main"><?= View::e($statusEq) ?></span>
+        <?php if ($serieEquip !== ''): ?>
+            <span class="tecnico-chip text-mono">Série: <?= View::e($serieEquip) ?></span>
+        <?php endif; ?>
+        <?php if ($emGarantia): ?>
+            <span class="tecnico-chip tecnico-chip--brand"><?= View::e($tipoGar !== '' ? $tipoGar : 'Garantia') ?></span>
+        <?php endif; ?>
+        <?php if (!empty($orcamento)): ?>
+            <span class="tecnico-chip tecnico-chip--success">Orçamento: <?= View::e((string) ($orcamento['status'] ?? '')) ?></span>
+        <?php endif; ?>
+        <?php if (!empty($equip['cx'])): ?>
+            <span class="tecnico-chip bg-info-subtle text-info-emphasis"><i class="ph ph-archive me-1"></i>Caixa: <strong id="focus-cx-main"><?= View::e((string) $equip['cx']) ?></strong></span>
+        <?php endif; ?>
+    </div>
+
+    <section class="tecnico-overview">
+        <article class="tecnico-kpi tecnico-kpi--hero">
+            <span class="tecnico-kpi__label">Defeito relatado</span>
+            <strong class="tecnico-kpi__value"><?= View::e($defeito !== '' ? $defeito : 'Sem defeito informado na recepção.') ?></strong>
+            <span class="tecnico-kpi__hint">
+                <?php
+                $heroMeta = [];
+                if ($serieEquip !== '') $heroMeta[] = 'Série ' . $serieEquip;
+                if (!empty($equip['voltagem'])) $heroMeta[] = 'Voltagem ' . (string) $equip['voltagem'];
+                if (!empty($equip['cx'])) $heroMeta[] = 'Caixa ' . (string) $equip['cx'];
+                echo View::e(!empty($heroMeta) ? implode(' · ', $heroMeta) : 'Complete série, voltagem e caixa para padronizar o diagnóstico.');
+                ?>
+            </span>
+        </article>
+        <article class="tecnico-kpi">
+            <span class="tecnico-kpi__label">Status atual</span>
+            <strong class="tecnico-kpi__value"><span id="status-kpi" class="status-badge <?= $badgeCls ?>"><?= View::e($statusEq) ?></span></strong>
+            <?php $seEm = (string) ($equip['status_equip_em'] ?? ''); ?>
+            <span class="tecnico-kpi__hint"><?= $seEm !== '' ? 'Desde ' . date('d/m/Y H:i', strtotime($seEm)) : 'Fluxo técnico do equipamento.' ?></span>
+        </article>
+        <article class="tecnico-kpi">
+            <span class="tecnico-kpi__label">Situação comercial</span>
+            <strong class="tecnico-kpi__value">
+                <span class="status-badge <?= $orcAvisoCls ?>">
+                    <i class="ph <?= $orcAvisoIco ?> me-1"></i><?= View::e($orcAvisoTxt) ?>
+                </span>
+            </strong>
+            <span class="tecnico-kpi__hint">Desfecho do orçamento na recepção.</span>
+        </article>
+        <?php if ($necessidades_pendentes > 0): ?>
+        <article class="tecnico-kpi">
+            <span class="tecnico-kpi__label">Aguardando peças</span>
+            <strong class="tecnico-kpi__value">
+                <span class="status-badge status-badge--warning">
+                    <i class="ph ph-clock me-1"></i><?= $necessidades_pendentes ?>
+                </span>
+            </strong>
+            <span class="tecnico-kpi__hint">
+                <?php
+                    $partes = [];
+                    if ($necessidades_resumo['pendentes'] > 0)
+                        $partes[] = $necessidades_resumo['pendentes'] . ' pendente(s)';
+                    if ($necessidades_resumo['compradas_sem_entrada'] > 0)
+                        $partes[] = $necessidades_resumo['compradas_sem_entrada'] . ' comprada(s) s/ entrada';
+                    if ($necessidades_resumo['manuais_sem_entrada'] > 0)
+                        $partes[] = $necessidades_resumo['manuais_sem_entrada'] . ' manual(is) s/ cadastro';
+                    echo implode(' · ', $partes) ?: 'Itens bloqueando montagem.';
+                ?>
+            </span>
+            <?php if (!empty($orcamento) && (string) $orcamento['status'] === 'aprovado'): ?>
+            <span class="tecnico-kpi__hint text-warning-emphasis fw-semibold">
+                Orçamento aprovado — aguardando peças para iniciar montagem.
+            </span>
+            <?php endif; ?>
+        </article>
+        <?php endif; ?>
+    </section>
+
+    <div class="tecnico-shell">
+        <aside class="card shadow-sm tecnico-sidebar d-none d-lg-flex">
+            <div class="card-header border-bottom">
+                <i class="ph ph-user"></i>
+                <span class="flex-grow-1">Dados do Cliente</span>
+            </div>
+            <div class="card-body d-flex flex-column gap-3 border-bottom">
+                <div class="tecnico-sidebar__summary">
+                    <span class="tecnico-sidebar__eyebrow">Cliente da OS</span>
+                    <h2 class="tecnico-sidebar__title fw-bold text-dark"><?= View::e((string) $os['nome_cliente']) ?></h2>
+                    <div class="tecnico-sidebar__meta mt-2 small text-muted d-flex flex-column gap-1">
+                        <?php if (!empty($os['telefone'])): ?>
+                            <div><i class="ph ph-phone me-1"></i><?= View::e((string) $os['telefone']) ?></div>
+                        <?php endif; ?>
+                        <div><i class="ph ph-calendar me-1"></i>Entrada: <?= View::e((string) $os['data_entrada']) ?></div>
+                    </div>
+                </div>
+            </div>
+
+            <?php if (!empty($equipamentosOs)): ?>
+            <div class="card-header border-bottom">
+                <i class="ph ph-stack"></i>
+                <span class="flex-grow-1">Equipamentos da OS</span>
+                <span class="badge bg-secondary"><?= $totalEquipamentosOs ?></span>
+            </div>
+            <div class="card-body p-2 bg-light border-bottom" style="max-height: 280px; overflow-y: auto;">
+                <div class="tecnico-sidebar-equip-list d-flex flex-column gap-2">
+                    <?php foreach ($equipamentosOs as $equipNav): ?>
+                        <?php
+                        $navIdx = (int) ($equipNav['ordem_idx'] ?? 0);
+                        $navStatus = (string) ($equipNav['status_equip'] ?? '');
+                        $navBadgeCls = match ($navStatus) {
+                            'aberta'     => 'status-badge--info',
+                            'andamento'  => 'status-badge--warning',
+                            'montagem'   => 'status-badge--brand',
+                            'pronto'     => 'status-badge--success',
+                            'retirado'   => 'status-badge--neutral',
+                            'cancelado'  => 'status-badge--danger',
+                            'devolvido'  => 'status-badge--neutral',
+                            'descartado' => 'status-badge--neutral',
+                            default      => 'status-badge--neutral',
+                        };
+                        $isAtual = $navIdx === (int) $equip['ordem_idx'];
+                        ?>
+                        <a href="/tecnico/os/<?= rawurlencode((string) $os['id']) ?>/equipamento/<?= $navIdx ?>"
+                           class="tecnico-sidebar-equip-item p-2 rounded border bg-white d-flex align-items-center justify-content-between text-decoration-none color-inherit <?= $isAtual ? 'border-primary border-2 bg-primary-subtle shadow-sm' : '' ?>">
+                            <div class="d-flex flex-column min-w-0">
+                                <span class="fw-semibold text-truncate text-dark small" style="font-size: 0.85rem;">
+                                    <?= $navIdx + 1 ?>. <?= View::e((string) (($equipNav['nome'] ?? '') !== '' ? $equipNav['nome'] : 'Sem nome')) ?>
+                                </span>
+                                <?php if (!empty($equipNav['cx'])): ?>
+                                    <span class="text-muted small" style="font-size: 0.75rem;"><i class="ph ph-archive me-1"></i>Caixa <?= View::e((string) $equipNav['cx']) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <span class="status-badge <?= $navBadgeCls ?> ms-2 py-0 px-2" style="font-size: 0.7rem;"><?= View::e($navStatus) ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="card-footer bg-white p-3">
+                <a href="/tecnico/catalogo-fontes" class="btn btn-outline-secondary w-100 btn-sm">
+                    <i class="ph ph-sliders-horizontal me-1"></i> Configurar fontes
+                </a>
+            </div>
+        </aside>
+
+        <div class="tecnico-main">
+            <!-- Seletor Dropdown Móvel -->
+            <?php if (!empty($equipamentosOs)): ?>
+            <div class="tecnico-mobile-equip-selector d-lg-none mb-3 p-3 bg-white border rounded shadow-sm">
+                <label for="mobile-equip-select" class="form-label small fw-bold text-muted mb-1"><i class="ph ph-stack me-1"></i>Equipamento Ativo (<?= $totalEquipamentosOs ?> no total)</label>
+                <select id="mobile-equip-select" class="form-select border-2 border-primary fw-semibold" onchange="window.location.href=this.value">
+                    <?php foreach ($equipamentosOs as $equipNav): ?>
+                        <?php
+                        $navIdx = (int) ($equipNav['ordem_idx'] ?? 0);
+                        $isAtual = $navIdx === (int) $equip['ordem_idx'];
+                        $statusName = View::e($equipNav['status_equip']);
+                        $equipName = View::e(($equipNav['nome'] ?? '') !== '' ? $equipNav['nome'] : 'Sem nome');
+                        ?>
+                        <option value="/tecnico/os/<?= rawurlencode((string) $os['id']) ?>/equipamento/<?= $navIdx ?>" <?= $isAtual ? 'selected' : '' ?>>
+                            <?= $navIdx + 1 ?> de <?= $totalEquipamentosOs ?>: <?= $equipName ?> (<?= $statusName ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
+
+            <!-- Navegação Horizontal Premium de Abas -->
+            <nav class="tecnico-nav-tabs mb-3 d-flex overflow-x-auto gap-2 py-1" aria-label="Seções do equipamento" style="scrollbar-width: none;">
+                <button type="button" class="tecnico-nav__item is-active btn btn-light px-3 py-2 border rounded-pill text-nowrap d-flex align-items-center gap-2" data-tech-target="painel">
+                    <i class="ph ph-wrench"></i>
+                    <span class="fw-bold small">Dados e status</span>
+                </button>
+                <button type="button" class="tecnico-nav__item btn btn-light px-3 py-2 border rounded-pill text-nowrap d-flex align-items-center gap-2" data-tech-target="pecas">
+                    <i class="ph ph-package"></i>
+                    <span class="fw-bold small">Peças e serviços</span>
+                    <span class="tecnico-nav-badge" id="tab-pecas-count"><?= number_format($totalItens, 0, ',', '.') ?></span>
+                </button>
+                <button type="button" class="tecnico-nav__item btn btn-light px-3 py-2 border rounded-pill text-nowrap d-flex align-items-center gap-2" data-tech-target="laudo">
+                    <i class="ph ph-clipboard-text"></i>
+                    <span class="fw-bold small">Laudo técnico</span>
+                </button>
+                <button type="button" class="tecnico-nav__item btn btn-light px-3 py-2 border rounded-pill text-nowrap d-flex align-items-center gap-2" data-tech-target="midias">
+                    <i class="ph ph-camera"></i>
+                    <span class="fw-bold small">Fotos e evidências</span>
+                    <span class="tecnico-nav-badge" id="tab-midias-count"><?= number_format($totalFotos + $totalFotosRecepcao, 0, ',', '.') ?></span>
+                </button>
+                <button type="button" class="tecnico-nav__item btn btn-light px-3 py-2 border rounded-pill text-nowrap d-flex align-items-center gap-2" data-tech-target="vista">
+                    <i class="ph ph-blueprint"></i>
+                    <span class="fw-bold small">Vista explodida</span>
+                    <span class="tecnico-nav-badge" id="tab-vista-count"><?= $vista !== '' ? '1' : '0' ?></span>
+                </button>
+            </nav>
+
+            <div class="tecnico-main__toolbar mb-3">
+                <div>
+                    <span class="tecnico-main__eyebrow">Área ativa</span>
+                    <strong id="tech-current-label">Dados e status</strong>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="tech-prev">
+                        <i class="ph ph-caret-left me-1"></i> Anterior
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="tech-next">
+                        Próxima <i class="ph ph-caret-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <section class="tecnico-panel is-active" id="tech-panel-painel" data-tech-panel="painel" data-tech-label="Dados e status">
+                <div id="cx-required-alert" class="alert alert-warning d-flex align-items-start gap-2 mb-4<?= !empty($equip['cx']) ? ' d-none' : '' ?>">
+                    <i class="ph ph-warning-circle fs-5 flex-shrink-0"></i>
+                    <div>
+                        <strong>Campo Caixa obrigatório.</strong>
+                        Preencha a caixa antes de avançar para etapas de execução ou mudança de status.
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-xl-7">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header">
+                                <i class="ph ph-wrench"></i>
+                                <span class="flex-grow-1">Equipamento</span>
+                                <button id="btn-editar-nome" class="btn btn-sm btn-outline-primary py-0">
+                                    <i class="ph ph-pencil-simple me-1"></i>Renomear
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="view-nome" class="visually-hidden" hidden>
+                                    <span id="span-nome-equip"><?= View::e($nomeEquip) ?></span>
+                                </div>
+                                <div id="edit-nome" class="mb-4" hidden>
+                                    <label class="form-label small fw-semibold">Novo nome (será salvo em CAIXA ALTA)</label>
+                                    <div class="input-group">
+                                        <input type="text" id="input-nome-equip" class="form-control" value="<?= View::e($nomeEquip) ?>">
+                                        <button id="btn-salvar-nome" class="btn btn-primary">Salvar</button>
+                                        <button id="btn-cancelar-nome" class="btn btn-outline-secondary">Cancelar</button>
+                                    </div>
+                                </div>
+
+                                <div class="tecnico-info-grid">
+                                    <div class="tecnico-info-card">
+                                        <dt class="text-body-secondary text-uppercase small fw-semibold">Série</dt>
+                                        <div id="view-serie" class="mb-0">
+                                            <dd class="text-mono mb-0">
+                                                <span id="span-serie"><?= View::e((string) ($equip['serie'] ?: '—')) ?></span>
+                                                <button id="btn-editar-serie" class="btn btn-xs btn-link p-0 ms-1 tecnico-inline-edit">Editar</button>
+                                            </dd>
+                                        </div>
+                                        <div id="edit-serie" class="mb-0" hidden>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" id="input-serie" class="form-control" value="<?= View::e((string) ($equip['serie'] ?: '')) ?>">
+                                                <button id="btn-salvar-serie" class="btn btn-sm btn-primary">Salvar</button>
+                                                <button id="btn-cancelar-serie" class="btn btn-sm btn-outline-secondary">X</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tecnico-info-card">
+                                        <dt class="text-body-secondary text-uppercase small fw-semibold">Voltagem</dt>
+                                        <div id="view-voltagem" class="mb-0">
+                                            <dd class="mb-0">
+                                                <span id="span-voltagem"><?= View::e((string) ($equip['voltagem'] ?: '—')) ?></span>
+                                                <button id="btn-editar-voltagem" class="btn btn-xs btn-link p-0 ms-1 tecnico-inline-edit">Editar</button>
+                                            </dd>
+                                        </div>
+                                        <div id="edit-voltagem" class="mb-0" hidden>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" id="input-voltagem" class="form-control" value="<?= View::e((string) ($equip['voltagem'] ?: '')) ?>">
+                                                <button id="btn-salvar-voltagem" class="btn btn-sm btn-primary">Salvar</button>
+                                                <button id="btn-cancelar-voltagem" class="btn btn-sm btn-outline-secondary">X</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tecnico-info-card">
+                                        <dt class="text-body-secondary text-uppercase small fw-semibold">Caixa</dt>
+                                        <div id="view-cx" class="mb-0">
+                                            <dd class="mb-0">
+                                                <span id="span-cx"><?= View::e((string) ($equip['cx'] ?: '—')) ?></span>
+                                                <button id="btn-editar-cx" class="btn btn-xs btn-link p-0 ms-1 tecnico-inline-edit">Editar</button>
+                                            </dd>
+                                        </div>
+                                        <div id="edit-cx" class="mb-0" hidden>
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" id="input-cx" class="form-control" value="<?= View::e((string) ($equip['cx'] ?: '')) ?>">
+                                                <button id="btn-salvar-cx" class="btn btn-sm btn-primary">Salvar</button>
+                                                <button id="btn-cancelar-cx" class="btn btn-sm btn-outline-secondary">X</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tecnico-info-card tecnico-info-card--wide">
+                                        <dt class="text-body-secondary text-uppercase small fw-semibold">Defeito relatado</dt>
+                                        <dd class="mb-0" id="span-descricao-equip"><?= View::e($defeito !== '' ? $defeito : '—') ?></dd>
+                                    </div>
+
+                                    <div class="tecnico-info-card tecnico-info-card--wide">
+                                        <dt class="text-body-secondary text-uppercase small fw-semibold">Garantia</dt>
+                                        <dd class="mb-0">
+                                            <?php if ($emGarantia): ?>
+                                                <span class="status-badge status-badge--brand">
+                                                    <?= $tipoGar !== '' ? View::e($tipoGar) : 'sim' ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-body-secondary">não</span>
+                                            <?php endif; ?>
+                                        </dd>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-5">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header"><i class="ph ph-flag"></i> <span class="flex-grow-1">Status do equipamento</span></div>
+                            <div class="card-body d-flex flex-column gap-3">
+                                <div class="tecnico-status-card">
+                                    <span class="text-body-secondary text-uppercase small fw-semibold">Status atual</span>
+                                    <span id="status-atual" class="status-badge <?= $badgeCls ?> fs-6">
+                                        <?= View::e($statusEq) ?>
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <label class="form-label small fw-semibold mb-2">Alterar status</label>
+                                    <div class="tecnico-status-control">
+                                        <select id="status-target" class="form-select">
+                                            <option value="aberta" <?= $statusEq === 'aberta' ? 'selected' : '' ?>>Aberta</option>
+                                            <option value="andamento" <?= $statusEq === 'andamento' ? 'selected' : '' ?>>Andamento</option>
+                                            <option value="montagem" <?= $statusEq === 'montagem' ? 'selected' : '' ?>>Montagem</option>
+                                            <option value="pronto" <?= $statusEq === 'pronto' ? 'selected' : '' ?>>Pronto</option>
+                                            <option value="cancelado" <?= $statusEq === 'cancelado' ? 'selected' : '' ?>>Cancelado</option>
+                                        </select>
+                                        <button type="button" id="btn-status-apply" class="btn btn-primary js-mudar-status">
+                                            <i class="ph ph-check me-1"></i> Aplicar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <?php if ($mostrarBtnRemontar): ?>
+                                <div>
+                                    <button type="button" id="btn-remontar-equipamento" class="btn btn-warning btn-sm w-100">
+                                        <i class="ph ph-arrow-counter-clockwise me-1"></i> Remontar equipamento
+                                    </button>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($mostrarBtnSemConserto): ?>
+                                <div>
+                                    <button type="button" id="btn-sem-conserto"
+                                            class="btn btn-outline-danger btn-sm w-100"
+                                            title="Use quando o equipamento não tiver conserto viável ou peças disponíveis.">
+                                        <i class="ph ph-x-circle me-1"></i> Indicar sem conserto
+                                    </button>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($mostrarBannerIniciarMontagem): ?>
+                                <div class="alert alert-success py-3 mb-0" id="banner-iniciar-montagem">
+                                    <div class="fw-semibold small mb-1">
+                                        <i class="ph ph-check-circle me-1"></i>Cliente aprovou o conserto deste equipamento.
+                                    </div>
+                                    <div class="text-body-secondary small mb-2">O equipamento está liberado para montagem/conserto.</div>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button type="button" id="btn-iniciar-montagem" class="btn btn-success btn-sm">
+                                            <i class="ph ph-wrench me-1"></i> Iniciar montagem agora
+                                        </button>
+                                        <button type="button" id="btn-adiar-montagem" class="btn btn-outline-secondary btn-sm">
+                                            Deixar para depois
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($mostrarBannerAprovBloqueado): ?>
+                                <?php $podeVerCompras = in_array($usuario['nivel_acesso'] ?? '', ['admin', 'recepcao'], true); ?>
+                                <div class="alert alert-warning py-2 mb-0 small" id="banner-aprovado-bloqueado">
+                                    <i class="ph ph-clock me-1"></i>
+                                    <strong>Cliente aprovou o conserto, mas há peças pendentes.</strong><br>
+                                    <span class="text-body-secondary">Aguarde a compra/entrada das peças antes de iniciar montagem.</span>
+                                    <?php if ($podeVerCompras): ?>
+                                    <div class="mt-2">
+                                        <a href="/compras/necessidades?os_id=<?= rawurlencode((string) $os['id']) ?>&status=pendente"
+                                           class="btn btn-outline-warning btn-sm">
+                                            <i class="ph ph-shopping-cart me-1"></i> Ver peças pendentes
+                                        </a>
+                                    </div>
+                                    <?php else: ?>
+                                    <div class="mt-1 text-body-secondary">Consulte a recepção sobre as peças pendentes.</div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($mostrarBannerMontagemAndamento): ?>
+                                <div class="alert alert-primary py-2 mb-0 small" id="banner-montagem-andamento">
+                                    <i class="ph ph-wrench me-1"></i>
+                                    <strong>Montagem/conserto em andamento.</strong><br>
+                                    <span class="text-body-secondary">Quando finalizar, marque este equipamento como Pronto.</span>
+                                    <div class="mt-2">
+                                        <button type="button" id="btn-marcar-pronto"
+                                                class="btn btn-primary btn-sm"
+                                                title="Conserto/montagem concluído. A recepção poderá registrar a retirada.">
+                                            <i class="ph ph-check-circle me-1"></i> Marcar como pronto
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($temDescarteExecutado): ?>
+                                <div class="alert alert-secondary py-2 mb-0 small">
+                                    <i class="ph ph-trash me-1"></i>
+                                    <strong>Equipamento descartado</strong> — descarte físico confirmado pela recepção.
+                                    <?php if ($descarteExecutadoEm !== ''): ?>
+                                        <br><span class="text-body-secondary">
+                                            Confirmado em: <?= View::e(date('d/m/Y H:i', strtotime($descarteExecutadoEm))) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php elseif ($temDescarteAutorizado): ?>
+                                <div class="alert alert-warning py-2 mb-0 small">
+                                    <i class="ph ph-trash me-1"></i>
+                                    <strong>Cliente autorizou descarte</strong> — realizar descarte físico deste equipamento.
+                                    <?php if ($descarteAutorizadoPor !== ''): ?>
+                                        <br><span class="text-body-secondary">
+                                            Autorizado por: <?= View::e($descarteAutorizadoPor) ?>
+                                            <?php if ($descarteMeio !== ''): ?>
+                                                via <?= View::e($descarteMeio) ?>
+                                            <?php endif; ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($mostrarBannerDevolucao): ?>
+                                <div class="alert alert-warning py-2 mb-0 small" id="banner-devolucao">
+                                    <i class="ph ph-arrow-counter-clockwise me-1"></i>
+                                    <strong>Remontagem para devolução</strong> — marque como Pronto ao concluir.
+                                    <div class="mt-2">
+                                        <button type="button" id="btn-marcar-pronto-devolucao"
+                                                class="btn btn-warning btn-sm"
+                                                title="Remontagem concluída. A recepção poderá registrar a devolução.">
+                                            <i class="ph ph-check-circle me-1"></i> Marcar como pronto para devolução
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if ($mostrarBannerAguardDev): ?>
+                                <div class="alert alert-info py-2 mb-0 small" id="banner-aguard-devolucao">
+                                    <i class="ph ph-check-circle me-1"></i>
+                                    <strong>Remontagem concluída</strong> — aguardando devolução pela recepção.
+                                </div>
+                                <?php endif; ?>
+
+                                <input type="hidden" id="obs-append" value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tecnico-panel" id="tech-panel-pecas" data-tech-panel="pecas" data-tech-label="Peças e serviços" hidden>
+                <div class="tecnico-parts-layout">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <i class="ph ph-package"></i>
+                            <span class="flex-grow-1">Itens já lançados</span>
+                            <span class="tecnico-chip"><span id="tabela-itens-count"><?= number_format($totalItens, 0, ',', '.') ?></span> item(ns)</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="tabela-itens">
+                                <thead>
+                                    <tr>
+                                        <th style="width:150px">Código</th>
+                                        <th>Descrição</th>
+                                        <th style="width:100px">Qtd</th>
+                                        <th style="width:60px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($itens)): ?>
+                                        <tr class="empty-row">
+                                            <td colspan="4" class="text-body-secondary text-center py-3">Nenhum item adicionado.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($itens as $it): ?>
+                                            <tr data-item-id="<?= (int) $it['id'] ?>">
+                                                <td class="text-mono"><?= View::e((string) $it['codigo']) ?></td>
+                                                <td><?= View::e((string) $it['descricao']) ?></td>
+                                                <td><?= View::e((string) $it['qtd']) ?></td>
+                                                <td>
+                                                    <button class="btn-icon text-danger js-remover-item" data-id="<?= (int) $it['id'] ?>" title="Remover">
+                                                        <i class="ph ph-x"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm tecnico-side-card">
+                        <div class="card-header">
+                            <i class="ph ph-plus-circle"></i>
+                            <span class="flex-grow-1">Lançamento rápido</span>
+                        </div>
+                        <div class="card-body d-flex flex-column gap-3">
+                            <div class="tecnico-tip-box">
+                                <i class="ph ph-info" style="font-size:1rem;flex-shrink:0;margin-top:.05rem"></i>
+                                <span>Lance primeiro as peças e serviços para orçamento. A descrição aceita busca multi-termos e o código acelera quando você já conhece a peça.</span>
+                            </div>
+
+                            <form id="form-novo-item" class="tecnico-quick-form" autocomplete="off">
+                                <div class="position-relative dropdown" id="wrap-codigo">
+                                    <label class="form-label small">Código <span class="text-body-secondary">(2+ digitos)</span></label>
+                                    <input type="text" name="codigo" id="input-codigo" placeholder="Buscar codigo..." class="form-control text-mono" autocomplete="off" data-ac-trigger="codigo">
+                                </div>
+
+                                <div class="position-relative dropdown" id="wrap-descricao">
+                                    <label class="form-label small">Descrição <span class="text-body-secondary">(2+ chars · multi-termos)</span></label>
+                                    <input type="text" name="descricao" id="input-descricao" placeholder="Ex.: induzido 220v bosch..." required class="form-control" autocomplete="off" data-ac-trigger="descricao">
+                                </div>
+
+                                <div>
+                                    <label class="form-label small">Qtd</label>
+                                    <input type="number" name="qtd" placeholder="Qtd" step="0.001" value="1" required class="form-control">
+                                </div>
+
+                                <input type="hidden" name="produto_id" value="">
+                                <input type="hidden" name="valor_unit" value="0">
+
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="ph ph-plus me-1"></i> Adicionar item
+                                </button>
+                            </form>
+
+                            <div class="tecnico-side-card__note">
+                                <i class="ph ph-lightbulb me-1"></i>Use o campo de M.O. no orçamento para mão de obra principal. O autocomplete bloqueia os códigos reservados para evitar lançamento errado.
+                            </div>
+                            <ul id="autocomplete-results" class="dropdown-menu shadow autocomplete-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tecnico-panel" id="tech-panel-laudo" data-tech-panel="laudo" data-tech-label="Laudo técnico" hidden>
+                <div class="card shadow-sm">
+                    <div class="card-header"><i class="ph ph-clipboard-text"></i> Laudo técnico</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <label class="form-label small fw-semibold">Observação interna</label>
+                                <textarea id="obs-int" rows="10" class="form-control" placeholder="Descreva os detalhes técnicos, defeitos encontrados e ações realizadas..."><?= View::e($obsInt) ?></textarea>
+                                <div class="form-text">Visível para orçamento e demais módulos internos.</div>
+                            </div>
+                            <div class="col-lg-5">
+                                <label class="form-label small fw-semibold">Observação para o cliente</label>
+                                <textarea id="obs-cli" rows="10" class="form-control" placeholder="Mensagem clara para o cliente..."><?= View::e($obsCli) ?></textarea>
+                                <div class="form-text">Será impressa no orçamento enviado ao cliente.</div>
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <button id="btn-salvar-laudo" class="btn btn-primary px-4">
+                                <i class="ph ph-floppy-disk me-1"></i> Salvar laudo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tecnico-panel" id="tech-panel-midias" data-tech-panel="midias" data-tech-label="Fotos e evidências" hidden>
+                <div class="row g-4">
+                    <div class="col-12 col-xxl-7">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header">
+                                <i class="ph ph-image-square"></i>
+                                <span class="flex-grow-1">Fotos da análise técnica</span>
+                                <span id="fotos-count" class="badge bg-secondary"><?= $totalFotos ?> arquivo(s)</span>
+                            </div>
+                            <div class="card-body">
+                                <div id="fotos-grid" class="row g-2 mb-3">
+                                    <?php if (empty($fotos)): ?>
+                                        <p class="text-body-secondary small mb-0" id="fotos-empty">Nenhuma foto enviada.</p>
+                                    <?php else: ?>
+                                        <?php foreach ($fotos as $url): ?>
+                                            <div class="col-6 col-sm-4 col-md-3 foto-item" data-url="<?= View::e($url) ?>">
+                                                <div class="position-relative">
+                                                    <a href="<?= View::e($url) ?>" target="_blank" rel="noopener">
+                                                        <img src="<?= View::e($url) ?>" alt="Foto da análise" loading="lazy"
+                                                             class="img-fluid rounded border tecnico-media-thumb">
+                                                    </a>
+                                                    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 js-remover-foto"
+                                                            data-url="<?= View::e($url) ?>" title="Remover" style="line-height:1;padding:2px 6px">
+                                                        <i class="ph ph-x"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center gap-3">
+                                    <label class="btn btn-outline-secondary btn-sm mb-0">
+                                        <i class="ph ph-camera me-1"></i> Adicionar fotos
+                                        <input type="file" id="input-fotos" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden>
+                                    </label>
+                                    <small class="text-body-secondary">Use a câmera ou selecione arquivos · até 10 MB cada</small>
+                                    <progress id="prog-fotos" max="100" value="0" hidden style="flex:1;max-width:220px"></progress>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xxl-5">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header">
+                                <i class="ph ph-camera"></i>
+                                <span class="flex-grow-1">Fotos da recepção</span>
+                                <span class="badge bg-secondary"><?= $totalFotosRecepcao ?> foto(s)</span>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($fotos_recepcao)): ?>
+                                    <div class="row g-2">
+                                        <?php foreach ($fotos_recepcao as $url): ?>
+                                            <div class="col-6 col-md-4">
+                                                <a href="<?= View::e($url) ?>" target="_blank" rel="noopener" class="d-block position-relative">
+                                                    <img src="<?= View::e($url) ?>" alt="Foto da recepção" loading="lazy"
+                                                         class="img-fluid rounded border tecnico-media-thumb">
+                                                    <span class="tecnico-media-tag">recepção</span>
+                                                </a>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="text-body-secondary small mb-0">Nenhuma foto de recepção vinculada a esta OS.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tecnico-panel" id="tech-panel-vista" data-tech-panel="vista" data-tech-label="Vista explodida" hidden>
+                <div class="row g-4">
+                    <div class="col-12 col-xxl-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header">
+                                <i class="ph ph-blueprint"></i>
+                                <span class="flex-grow-1">Arquivo atual</span>
+                            </div>
+                            <div class="card-body d-flex flex-column gap-3">
+                                <div id="vista-current" class="tecnico-vista-current">
+                                    <?php if ($vista !== ''): ?>
+                                        <div class="tecnico-vista-current__filled">
+                                            <span class="tecnico-chip tecnico-chip--success">Vinculada</span>
+                                            <a href="<?= View::e($vista) ?>" target="_blank" rel="noopener" class="fw-medium">
+                                                <i class="ph ph-arrow-square-out me-1"></i> Abrir vista atual
+                                            </a>
+                                            <button id="btn-remover-vista" class="btn btn-sm btn-outline-danger">Remover</button>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="tecnico-vista-current__empty">
+                                            <span class="tecnico-chip">Sem arquivo</span>
+                                            <p class="text-body-secondary small mb-0">Busque em uma fonte do catálogo ou envie manualmente o PDF correto.</p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="tecnico-tip-box">
+                                    <i class="ph ph-info" style="font-size:1rem;flex-shrink:0;margin-top:.05rem"></i>
+                                    <span>Priorize sempre a vista vinculada ao modelo exato. Se a fonte externa abrir apenas uma página de busca, valide o arquivo antes de vincular.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xxl-8">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <i class="ph ph-magnifying-glass"></i>
+                                <span class="flex-grow-1">Buscar no catálogo</span>
+                                <a href="/tecnico/catalogo-fontes" class="btn btn-sm btn-outline-secondary">
+                                    <i class="ph ph-sliders-horizontal me-1"></i> Fontes
+                                </a>
+                            </div>
+                            <div class="card-body d-flex flex-column gap-3">
+                                <div class="tecnico-source-pills" id="cat-source-pills"></div>
+
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-lg-4">
+                                        <label class="form-label small">Fonte ativa</label>
+                                        <select id="cat-fonte" class="form-select"></select>
+                                    </div>
+                                    <div class="col-lg-8">
+                                        <div class="tecnico-catalog-hint" id="cat-source-summary">Selecione a fonte e busque pelo modelo correto.</div>
+                                    </div>
+                                </div>
+
+                                <div id="cat-controls" class="row g-3 align-items-end"></div>
+
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-lg">
+                                        <label class="form-label small" id="cat-busca-label">Modelo / busca</label>
+                                        <input type="text" id="cat-busca" class="form-control" placeholder="Digite o modelo..." autocomplete="off">
+                                        <div class="form-text" id="cat-source-help">Use o modelo e a marca do equipamento para refinar a busca.</div>
+                                    </div>
+                                    <div class="col-lg-auto d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" id="btn-cat-prefill">
+                                            <i class="ph ph-sparkle me-1"></i> Usar dados do equipamento
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="btn-cat-buscar">
+                                            <i class="ph ph-magnifying-glass me-1"></i> Buscar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="cat-results"></div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header">
+                                <i class="ph ph-upload-simple"></i>
+                                <span class="flex-grow-1">Upload manual</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap align-items-center gap-3">
+                                    <label class="btn btn-outline-secondary btn-sm mb-0">
+                                        <i class="ph ph-upload-simple me-1"></i> Selecionar arquivo
+                                        <input type="file" id="input-vista" accept="application/pdf,image/jpeg,image/png,image/webp" hidden>
+                                    </label>
+                                    <small class="text-body-secondary">PDF, JPEG, PNG ou WebP · até 20 MB</small>
+                                    <progress id="prog-vista" max="100" value="0" hidden style="flex:1;max-width:220px"></progress>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal: Indicar sem conserto (9F-9) -->
+    <div class="modal fade" id="modal-sem-conserto" tabindex="-1" aria-labelledby="modalSemConsertoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalSemConsertoLabel">
+                        <i class="ph ph-x-circle me-1 text-danger"></i>Indicar equipamento sem conserto
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-body-secondary small mb-3">
+                        O motivo será registrado no laudo interno e ficará visível para a recepção.
+                        O status do equipamento será marcado como <strong>cancelado</strong>.
+                    </p>
+                    <label class="form-label fw-semibold" for="input-motivo-sem-conserto">
+                        Motivo técnico <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="input-motivo-sem-conserto" class="form-control" rows="4" maxlength="500"
+                              placeholder="Ex: peça fora de linha, fabricante sem reposição, equipamento inviável, custo não compensa..."></textarea>
+                    <div class="form-text text-danger d-none" id="erro-motivo-sem-conserto">
+                        Motivo obrigatório (mínimo 10 caracteres).
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirmar-sem-conserto">
+                        <i class="ph ph-x-circle me-1"></i> Confirmar sem conserto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tecnico-sticky-bar d-lg-none position-sticky bottom-0 start-0 w-100 border-top p-3 z-3 d-flex align-items-center justify-content-between">
+        <a href="/tecnico" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+            <i class="ph ph-arrow-left"></i> Painel
+        </a>
+        <span class="status-badge <?= $badgeCls ?>" id="status-sticky-mobile"><?= View::e($statusEq) ?></span>
+    </div>
+</div>
+
+<script id="catalog-fontes-data" type="application/json"><?= $catalogSourcesJson ?></script>
+<?php $jsVer = substr(md5_file(BASE_PATH . '/public/assets/js/tecnico-detalhe.js'), 0, 8); ?>
+<script src="/assets/js/tecnico-detalhe.js?v=<?= $jsVer ?>" defer></script>

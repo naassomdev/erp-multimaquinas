@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #FFD32C;
+  --color-primary-hover: #FACC15;
+  --color-primary-fg: #1E293B;
+  --color-bg-light: #F8FAFC;
+  --color-bg-dark: #0F172A;
+  --color-card-dark: #1E293B;
+  --color-secondary: #64748b;
+  --color-success: #10b981;
+  --color-alert: #f59e0b;
+  --color-error: #f43f5e;
+  --color-info: #0ea5e9;
+  
+  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+@layer base {
+  body {
+    @apply bg-bg-light text-slate-900 transition-colors duration-200;
+  }
+  
+  /* Dark mode global styles */
+  .dark body {
+    @apply bg-bg-dark text-slate-100;
+  }
+}

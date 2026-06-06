@@ -1,0 +1,9 @@
+- main [ref=e2]:
+  - generic [ref=e3]: Erro 403
+  - heading "Acesso negado" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Você não tem permissão para acessar este recurso.
+  - generic [ref=e6]:
+    - link "Voltar" [ref=e7] [cursor=pointer]:
+      - /url: /dashboard
+    - link "Ir para o painel" [ref=e8] [cursor=pointer]:
+      - /url: /dashboard

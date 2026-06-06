@@ -1,0 +1,18 @@
+{
+    "slug": "cc6d87db5f8fbcf3",
+    "numero": "0001/2026",
+    "criado_em": "2026-05-09 08:27:56",
+    "criado_por": "Administrador",
+    "cliente": {
+        "nome": "Joao Silva",
+        "telefone": "(11) 99999-9999",
+        "email": ""
+    },
+    "item": {
+        "descricao": "Motor Eletrico 2CV Weg",
+        "qtd": 1,
+        "valor": 450,
+        "total": 450
+    },
+    "foto_url": null
+}

@@ -1,0 +1,196 @@
+// =====================================================================
+// Variáveis & overrides do Bootstrap — devem vir ANTES do @import bootstrap
+// =====================================================================
+
+// ── Brand ────────────────────────────────────────────────────────────
+$brand-yellow:       #FFD32C;   // PRIMARY — amarelo Multimáquinas
+$brand-yellow-hover: #F2C108;   // hover (10% mais escuro, mantém saturação)
+$brand-yellow-soft:  #FFF7CC;   // bg leve para destaques
+$brand-dark:         #1F2937;   // sidebar, header (cinza-azul)
+$brand-darker:       #111827;   // texto principal
+
+// Cinzas — paleta consistente em todo o app
+$gray-50:  #F9FAFB;
+$gray-100: #F3F4F6;
+$gray-200: #E5E7EB;
+$gray-300: #D1D5DB;
+$gray-400: #9CA3AF;
+$gray-500: #6B7280;
+$gray-600: #4B5563;
+$gray-700: #374151;
+$gray-800: #1F2937;
+$gray-900: #111827;
+
+// ── Bootstrap theme colors ───────────────────────────────────────────
+$primary:    $brand-yellow;
+$secondary:  $gray-500;
+$success:    #10B981;
+$danger:     #EF4444;
+$warning:    #F59E0B;
+$info:       #0EA5E9;
+$light:      $gray-100;
+$dark:       $brand-dark;
+
+// ── Body ─────────────────────────────────────────────────────────────
+$body-bg:       $gray-50;
+$body-color:    $brand-darker;
+$body-tertiary-bg: $gray-100;
+
+// ── Tipografia ───────────────────────────────────────────────────────
+$font-family-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI',
+                         Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-family-monospace:  ui-monospace, SFMono-Regular, 'Roboto Mono',
+                         'Source Code Pro', monospace;
+
+$font-size-base:   .9375rem;   // 15px — leve denser que o default 16px
+$font-size-sm:     .8125rem;   // 13px
+$line-height-base: 1.55;
+
+$h1-font-size: 1.75rem;
+$h2-font-size: 1.375rem;
+$h3-font-size: 1.125rem;
+$h4-font-size: 1rem;
+$h5-font-size: .9375rem;
+$h6-font-size: .8125rem;
+
+$headings-font-weight: 600;
+$headings-color:       $gray-900;
+
+// ── Bordas e cantos ──────────────────────────────────────────────────
+$border-color:     $gray-200;
+$border-radius:    .5rem;
+$border-radius-sm: .375rem;
+$border-radius-lg: .75rem;
+$border-radius-xl: 1rem;
+
+// ── Sombras (suaves, padrão SaaS) ────────────────────────────────────
+$box-shadow-sm: 0 1px 2px rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .03);
+$box-shadow:    0 4px 6px -1px rgba(0, 0, 0, .06), 0 2px 4px -2px rgba(0, 0, 0, .04);
+$box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .08), 0 4px 6px -4px rgba(0, 0, 0, .05);
+
+// ── Botões — texto preto sobre amarelo (contraste) ───────────────────
+$btn-color:                    $brand-darker;
+$btn-font-weight:              500;
+$btn-padding-y:                .5rem;
+$btn-padding-x:                1rem;
+$btn-padding-y-sm:             .375rem;
+$btn-padding-x-sm:             .75rem;
+$btn-border-radius:            .5rem;
+$btn-border-radius-sm:         .375rem;
+$btn-focus-width:              .15rem;
+$btn-focus-box-shadow:         0 0 0 $btn-focus-width rgba($primary, .35);
+
+// Sobre o $primary amarelo: os mixins do Bootstrap calculam contraste
+// automaticamente, mas vamos forçar texto escuro para ficar legível.
+$primary-text-emphasis:        $brand-darker;
+$min-contrast-ratio:           3;
+
+// ── Inputs / Forms ───────────────────────────────────────────────────
+$input-padding-y:              .5rem;
+$input-padding-x:              .75rem;
+$input-font-size:              $font-size-base;
+$input-bg:                     #FFFFFF;
+$input-border-color:           $gray-200;
+$input-focus-border-color:     rgba($primary, .6);
+$input-focus-box-shadow:       0 0 0 .15rem rgba($primary, .25);
+$input-placeholder-color:      $gray-400;
+$input-border-radius:          .5rem;
+
+$form-label-font-size:         .8125rem;
+$form-label-font-weight:       500;
+$form-label-color:             $gray-700;
+$form-label-margin-bottom:     .375rem;
+
+// ── Cards ────────────────────────────────────────────────────────────
+$card-bg:                      #FFFFFF;
+$card-border-color:            $gray-200;
+$card-border-radius:           $border-radius-lg;
+$card-box-shadow:              $box-shadow-sm;
+$card-cap-bg:                  transparent;
+$card-cap-padding-y:           1rem;
+$card-cap-padding-x:           1.25rem;
+$card-spacer-y:                1.25rem;
+$card-spacer-x:                1.25rem;
+
+// ── Tabelas (espaçosas, padrão SaaS) ─────────────────────────────────
+$table-cell-padding-y:         .875rem;
+$table-cell-padding-x:         1rem;
+$table-cell-padding-y-sm:      .5rem;
+$table-cell-padding-x-sm:      .625rem;
+$table-bg:                     #FFFFFF;
+$table-border-color:           $gray-100;
+$table-hover-bg:               $gray-50;
+$table-th-font-weight:         600;
+$table-color:                  $gray-700;
+
+// ── Navbar / Topbar ──────────────────────────────────────────────────
+$navbar-padding-y:             .75rem;
+$navbar-light-color:           $gray-600;
+$navbar-light-hover-color:     $gray-900;
+$navbar-light-active-color:    $primary;
+
+// ── Sidebar (custom — não é variável Bootstrap) ──────────────────────
+$sidebar-width:                256px;
+$sidebar-collapsed-width:      72px;
+$sidebar-bg:                   $brand-dark;
+$sidebar-color:                $gray-300;
+$sidebar-color-hover:          #FFFFFF;
+$sidebar-active-bg:            rgba($brand-yellow, .12);
+$sidebar-active-color:         $brand-yellow;
+$sidebar-section-color:        $gray-500;
+
+// ── Topbar custom ────────────────────────────────────────────────────
+$topbar-height:                64px;
+$topbar-bg:                    #FFFFFF;
+$topbar-border:                $gray-200;
+
+// ── Modais / Offcanvas ───────────────────────────────────────────────
+$modal-content-border-radius:  $border-radius-lg;
+$modal-content-border-color:   $gray-200;
+$modal-content-box-shadow-xs:  $box-shadow-lg;
+$modal-content-box-shadow-sm-up: $box-shadow-lg;
+
+$offcanvas-bg-color:           #FFFFFF;
+$offcanvas-color:              $body-color;
+
+// ── Badges ───────────────────────────────────────────────────────────
+$badge-font-size:              .6875rem;
+$badge-font-weight:            500;
+$badge-padding-y:              .25rem;
+$badge-padding-x:              .5rem;
+$badge-border-radius:          1rem;  // pill por padrão
+
+// ── Alertas / Toasts ─────────────────────────────────────────────────
+$alert-border-radius:          $border-radius;
+$alert-padding-y:              .875rem;
+$alert-padding-x:              1.125rem;
+
+// ── Dropdowns ────────────────────────────────────────────────────────
+$dropdown-border-color:        $gray-200;
+$dropdown-border-radius:       $border-radius;
+$dropdown-box-shadow:          $box-shadow-lg;
+$dropdown-link-hover-bg:       $gray-50;
+$dropdown-link-active-bg:      rgba($primary, .12);
+$dropdown-link-active-color:   $brand-darker;
+
+// ── Spacers extras ───────────────────────────────────────────────────
+$spacer: 1rem;
+// Bootstrap default tem 0,1,2,3,4,5 (0 a 3rem). Adicionamos mais granularidade:
+$spacers: (
+    0: 0,
+    1: $spacer * .25,
+    2: $spacer * .5,
+    3: $spacer * .75,
+    4: $spacer,
+    5: $spacer * 1.5,
+    6: $spacer * 2,
+    7: $spacer * 2.5,
+    8: $spacer * 3,
+    9: $spacer * 4,
+    10: $spacer * 5,
+);
+
+// ── Z-index (centraliza ordem de empilhamento) ───────────────────────
+$zindex-sidebar:               1030;
+$zindex-topbar:                1020;
+$zindex-sidebar-overlay:       1025;

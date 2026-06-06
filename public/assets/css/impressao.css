@@ -1,0 +1,44 @@
+/* ── ESTILOS DE IMPRESSÃO — ERP Multimáquinas ── */
+
+@media print {
+  body {
+    background: #fff !important;
+    padding: 0 !important;
+    color: #1a1a1a !important;
+  }
+
+  .toolbar,
+  .topbar,
+  .no-print,
+  .btn,
+  .btn-remove-equip,
+  .btn-remove-foto,
+  .foto-drop input,
+  nav,
+  .toast { display: none !important; }
+
+  .doc {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #preview-container { display: block !important; }
+
+  .equip-block { page-break-inside: avoid; }
+
+  .form-field input,
+  .form-field input[type="text"] {
+    border: none !important;
+    border-bottom: 1px solid #ccc !important;
+  }
+
+  .garantia-section { border: 1px solid #ddd !important; background: #fffdf5 !important; }
+  .garantia-options { display: block !important; }
+
+  @page {
+    size: A5 landscape;
+    margin: 10mm;
+  }
+}

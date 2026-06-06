@@ -1,0 +1,314 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]: 
+      - generic [ref=e7]: Multimaquinas
+    - navigation [ref=e8]:
+      - link " Dashboard" [ref=e9] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e10]: 
+        - generic [ref=e11]: Dashboard
+      - generic [ref=e12]: Operacao
+      - link " Clientes" [ref=e13] [cursor=pointer]:
+        - /url: /clientes
+        - generic [ref=e14]: 
+        - generic [ref=e15]: Clientes
+      - link " Ordens de Servico" [ref=e16] [cursor=pointer]:
+        - /url: /os
+        - generic [ref=e17]: 
+        - generic [ref=e18]: Ordens de Servico
+      - generic [ref=e19]: Bancada
+      - link " Painel Tecnico" [ref=e20] [cursor=pointer]:
+        - /url: /tecnico
+        - generic [ref=e21]: 
+        - generic [ref=e22]: Painel Tecnico
+      - link " Orcamentos" [ref=e23] [cursor=pointer]:
+        - /url: /orcamento
+        - generic [ref=e24]: 
+        - generic [ref=e25]: Orcamentos
+      - link " Compras" [ref=e26] [cursor=pointer]:
+        - /url: /compras/necessidades
+        - generic [ref=e27]: 
+        - generic [ref=e28]: Compras
+      - link " Garantias Fab." [ref=e29] [cursor=pointer]:
+        - /url: /relatorios/garantias-fabricante
+        - generic [ref=e30]: 
+        - generic [ref=e31]: Garantias Fab.
+      - generic [ref=e32]: Administrativo
+      - link " Estoque" [ref=e33] [cursor=pointer]:
+        - /url: /estoque
+        - generic [ref=e34]: 
+        - generic [ref=e35]: Estoque
+      - link " Financeiro" [ref=e36] [cursor=pointer]:
+        - /url: /financeiro
+        - generic [ref=e37]: 
+        - generic [ref=e38]: Financeiro
+      - link " NFS-e" [ref=e39] [cursor=pointer]:
+        - /url: /nfse
+        - generic [ref=e40]: 
+        - generic [ref=e41]: NFS-e
+      - link " Tabela M.O." [ref=e42] [cursor=pointer]:
+        - /url: /admin/mao-de-obra
+        - generic [ref=e43]: 
+        - generic [ref=e44]: Tabela M.O.
+      - link " Dados da Empresa" [ref=e45] [cursor=pointer]:
+        - /url: /admin/empresa
+        - generic [ref=e46]: 
+        - generic [ref=e47]: Dados da Empresa
+      - link " Config. E-mail" [ref=e48] [cursor=pointer]:
+        - /url: /admin/email
+        - generic [ref=e49]: 
+        - generic [ref=e50]: Config. E-mail
+      - link " Usuários" [ref=e51] [cursor=pointer]:
+        - /url: /admin/usuarios
+        - generic [ref=e52]: 
+        - generic [ref=e53]: Usuários
+      - link " Clientes Duplicados" [ref=e54] [cursor=pointer]:
+        - /url: /admin/clientes/duplicados
+        - generic [ref=e55]: 
+        - generic [ref=e56]: Clientes Duplicados
+      - generic [ref=e57]: PDV
+      - link " PDV" [ref=e58] [cursor=pointer]:
+        - /url: /pdv
+        - generic [ref=e59]: 
+        - generic [ref=e60]: PDV
+      - link " Vendas PDV" [ref=e61] [cursor=pointer]:
+        - /url: /pdv/vendas
+        - generic [ref=e62]: 
+        - generic [ref=e63]: Vendas PDV
+      - generic [ref=e64]: Atencao
+      - link " Alertas Retirada 10" [ref=e65] [cursor=pointer]:
+        - /url: /alertas/retirada
+        - generic [ref=e66]: 
+        - generic [ref=e67]: Alertas Retirada
+        - generic [ref=e68]: "10"
+    - link " Sair" [ref=e70] [cursor=pointer]:
+      - /url: /logout
+      - generic [ref=e71]: 
+      - generic [ref=e72]: Sair
+  - generic [ref=e73]:
+    - banner [ref=e74]:
+      - generic [ref=e75]:
+        - button "Alternar menu lateral" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: 
+        - navigation "Breadcrumb" [ref=e78]:
+          - generic [ref=e79]: Sistema
+          - generic [ref=e81]: 
+          - generic [ref=e82]: "OS 20260605-016 · Equipamento #0"
+      - generic [ref=e83]:
+        - text: 
+        - button "Notificações (10 novas)" [ref=e85] [cursor=pointer]:
+          - generic [ref=e86]: 
+          - generic: "10"
+        - text:  
+        - button "Alternar tema" [ref=e87] [cursor=pointer]:
+          - text: 
+          - generic [ref=e88]: 
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - strong [ref=e91]: Carlos
+            - text: Admin
+          - generic [ref=e92]: C
+    - main [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e98]: OS 20260605-016
+            - heading "EQUIPAMENTO TESTE SINCRONIA (1 de 1)" [level=1] [ref=e99]:
+              - text: EQUIPAMENTO TESTE SINCRONIA
+              - generic [ref=e100]: (1 de 1)
+            - generic [ref=e101]:
+              - generic [ref=e102]: CODEX
+              - generic [ref=e103]: ·
+              - generic [ref=e104]: SYNC-ORC-TEC
+              - generic [ref=e105]: ·
+              - generic [ref=e106]: "Garantia: Nao"
+          - generic [ref=e107]:
+            - link " Fontes PDF" [ref=e108] [cursor=pointer]:
+              - /url: /tecnico/catalogo-fontes
+              - generic [ref=e109]: 
+              - text: Fontes PDF
+            - link " Voltar" [ref=e110] [cursor=pointer]:
+              - /url: /tecnico
+              - generic [ref=e111]: 
+              - text: Voltar
+            - link " Dashboard" [ref=e112] [cursor=pointer]:
+              - /url: /dashboard
+              - generic [ref=e113]: 
+              - text: Dashboard
+        - generic [ref=e293]:
+          - text: Item adicionado
+          - button [ref=e294] [cursor=pointer]
+        - generic [ref=e114]:
+          - article [ref=e115]:
+            - generic [ref=e116]:
+              - generic [ref=e117]: Card 1
+              - heading "Cliente e solicitacao" [level=2] [ref=e118]
+            - generic [ref=e119]:
+              - generic [ref=e120]:
+                - generic [ref=e121]: Cliente
+                - strong [ref=e122]: VALIDACAO SYNC ORC TEC 20260606005510
+              - generic [ref=e123]:
+                - generic [ref=e124]: Telefone / WhatsApp
+                - link "(11) 90000-0000" [ref=e125] [cursor=pointer]:
+                  - /url: tel:11900000000
+              - generic [ref=e126]:
+                - generic [ref=e127]: Defeito relatado
+                - paragraph [ref=e128]: VALIDACAO AUTENTICADA DE SINCRONIZACAO DE ITENS
+              - generic [ref=e130]:
+                - generic [ref=e131]: 
+                - text: "Entrada: 2026-06-05 21:55:11"
+          - article [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: Card 2
+              - heading "Andamento da OS" [level=2] [ref=e135]
+            - generic [ref=e136]:
+              - generic [ref=e137]:
+                - generic [ref=e138]:
+                  - generic [ref=e139]: Status atual
+                  - strong [ref=e140]:
+                    - generic [ref=e141]: andamento
+                - generic [ref=e142]:
+                  - generic [ref=e143]: Desde quando
+                  - strong [ref=e144]: 05/06/2026 21:55
+              - generic [ref=e145]:
+                - generic [ref=e146]: Situacao comercial
+                - generic [ref=e147]:
+                  - generic [ref=e148]: "Orcamento: rascunho"
+                  - generic [ref=e149]:
+                    - generic [ref=e150]: 
+                    - text: Orçamento em elaboração pela recepção.
+              - generic [ref=e151]:
+                - button " Concluir diagnóstico e enviar para recepção" [ref=e152] [cursor=pointer]:
+                  - generic [ref=e153]: 
+                  - text: Concluir diagnóstico e enviar para recepção
+                - button " Indicar sem conserto" [ref=e154] [cursor=pointer]:
+                  - generic [ref=e155]: 
+                  - text: Indicar sem conserto
+        - generic [ref=e156]:
+          - text:     
+          - generic [ref=e157]:
+            - generic [ref=e158]:
+              - generic [ref=e159]:
+                - generic [ref=e160]: 
+                - text: Equipamento Ativo (1 no total)
+              - combobox "Equipamento Ativo (1 no total)" [ref=e161]:
+                - 'option "1 de 1: EQUIPAMENTO TESTE SINCRONIA (andamento)" [selected]'
+            - navigation "Seções do equipamento" [ref=e162]:
+              - button "Dados e status" [ref=e163] [cursor=pointer]:
+                - generic [ref=e164]: 
+                - generic [ref=e165]: Dados e status
+              - button "Peças e serviços" [ref=e166] [cursor=pointer]:
+                - generic [ref=e167]: 
+                - generic [ref=e168]: Peças e serviços
+                - generic [ref=e169]: "3"
+              - button "Laudo técnico" [ref=e170] [cursor=pointer]:
+                - generic [ref=e171]: 
+                - generic [ref=e172]: Laudo técnico
+              - button "Fotos e evidências" [ref=e173] [cursor=pointer]:
+                - generic [ref=e174]: 
+                - generic [ref=e175]: Fotos e evidências
+                - generic [ref=e176]: "0"
+              - button "Vista explodida" [ref=e177] [cursor=pointer]:
+                - generic [ref=e178]: 
+                - generic [ref=e179]: Vista explodida
+                - generic [ref=e180]: "0"
+            - generic [ref=e181]:
+              - generic [ref=e182]:
+                - generic [ref=e183]: Área ativa
+                - strong [ref=e184]: Peças e serviços
+              - generic [ref=e185]:
+                - button " Anterior" [ref=e227] [cursor=pointer]:
+                  - generic [ref=e228]: 
+                  - text: Anterior
+                - button "Próxima " [ref=e186] [cursor=pointer]:
+                  - text: Próxima
+                  - generic [ref=e187]: 
+            - text:       
+            - generic [ref=e230]:
+              - generic [ref=e231]:
+                - generic [ref=e232]:
+                  - generic [ref=e233]: 
+                  - generic [ref=e234]: Itens já lançados
+                  - generic [ref=e235]:
+                    - generic [ref=e236]: "3"
+                    - text: item(ns)
+                - table [ref=e238]:
+                  - rowgroup [ref=e239]:
+                    - row "Código Descrição Qtd Compra" [ref=e240]:
+                      - columnheader "Código" [ref=e241]
+                      - columnheader "Descrição" [ref=e242]
+                      - columnheader "Qtd" [ref=e243]
+                      - columnheader "Compra" [ref=e244]
+                      - columnheader [ref=e245]
+                  - rowgroup [ref=e246]:
+                    - row "3253 REBOBINAMENTO CODEX REVISADO 2 " [ref=e295]:
+                      - cell "3253" [ref=e296]
+                      - cell "REBOBINAMENTO CODEX REVISADO" [ref=e297]
+                      - cell "2" [ref=e298]
+                      - cell [ref=e299]
+                      - cell "" [ref=e300]:
+                        - button "" [ref=e301] [cursor=pointer]:
+                          - generic [ref=e302]: 
+                    - row "3284 PINTURA CODEX ADICIONADA FINAL 1 " [ref=e303]:
+                      - cell "3284" [ref=e304]
+                      - cell "PINTURA CODEX ADICIONADA FINAL" [ref=e305]
+                      - cell "1" [ref=e306]
+                      - cell [ref=e307]
+                      - cell "" [ref=e308]:
+                        - button "" [ref=e309] [cursor=pointer]:
+                          - generic [ref=e310]: 
+                    - row "POS-SYNC-CODEX ITEM TECNICO POS SINCRONIA CODEX 1  Solicitar compra " [ref=e311]:
+                      - cell "POS-SYNC-CODEX" [ref=e312]
+                      - cell "ITEM TECNICO POS SINCRONIA CODEX" [ref=e313]
+                      - cell "1" [ref=e314]
+                      - cell " Solicitar compra" [ref=e315]:
+                        - button " Solicitar compra" [ref=e317] [cursor=pointer]:
+                          - generic [ref=e318]: 
+                          - text: Solicitar compra
+                      - cell "" [ref=e319]:
+                        - button "" [ref=e320] [cursor=pointer]:
+                          - generic [ref=e321]: 
+              - generic [ref=e263]:
+                - generic [ref=e264]:
+                  - generic [ref=e265]: 
+                  - generic [ref=e266]: Serviço terceirizado
+                  - button " Recondicionamento / terceirizado" [ref=e267] [cursor=pointer]:
+                    - generic [ref=e268]: 
+                    - text: Recondicionamento / terceirizado
+                - paragraph [ref=e270]: Nenhum serviço terceirizado registrado para este equipamento.
+              - generic [ref=e271]:
+                - generic [ref=e272]:
+                  - generic [ref=e273]: 
+                  - generic [ref=e274]: Lançamento rápido
+                - generic [ref=e275]:
+                  - generic [ref=e276]:
+                    - generic [ref=e277]: 
+                    - generic [ref=e278]: Lance primeiro as peças e serviços para orçamento. A descrição aceita busca multi-termos e o código acelera quando você já conhece a peça.
+                  - generic [ref=e279]:
+                    - generic [ref=e280]:
+                      - generic [ref=e281]: Código (2+ digitos)
+                      - textbox "Buscar codigo..." [ref=e282]
+                    - generic [ref=e283]:
+                      - generic [ref=e284]: Descrição (2+ chars · multi-termos)
+                      - 'textbox "Ex.: induzido 220v bosch..." [ref=e285]'
+                    - generic [ref=e286]:
+                      - generic [ref=e287]: Qtd
+                      - spinbutton [ref=e288]: "1"
+                    - button " Adicionar item" [ref=e289] [cursor=pointer]:
+                      - generic [ref=e290]: 
+                      - text: Adicionar item
+                  - generic [ref=e291]:
+                    - generic [ref=e292]: 
+                    - text: Use o campo de M.O. no orçamento para mão de obra principal. O autocomplete bloqueia os códigos reservados para evitar lançamento errado.
+            - text:             
+        - text:        
+        - generic [ref=e220]:
+          - link " Painel" [ref=e221] [cursor=pointer]:
+            - /url: /tecnico
+            - generic [ref=e222]: 
+            - text: Painel
+          - generic [ref=e223]: andamento
+    - contentinfo [ref=e224]:
+      - generic [ref=e225]: © 2026 Multimaquinas — ERP
+      - generic [ref=e226]: v2.0

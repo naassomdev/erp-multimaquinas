@@ -1,0 +1,15 @@
+-- ============================================================
+-- BACKUP PRÉ-MIGRATION — Etapa 9C-4
+-- Data: 2026-05-18
+-- ============================================================
+-- Campos de execução de descarte NÃO existem em os_equipamento.
+-- Necessária migration aditiva para descarte_executado_em e descarte_executado_uid.
+--
+-- Estado antes:
+--   os_equipamento — últimas colunas antes da migration:
+--     descarte_autorizado_em  datetime  NULL
+--     descarte_autorizado_por varchar(120) NULL
+--     descarte_autorizado_uid int unsigned NULL
+--     descarte_meio           enum(presencial,telefone,whatsapp,email) NULL
+--     devolucao_em            datetime NULL
+--     devolucao_uid           int unsigned NULL

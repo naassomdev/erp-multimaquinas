@@ -1,0 +1,40 @@
+// =====================================================================
+// Print — estilos de impressão (relatório de faturamento, OS, etc.)
+// =====================================================================
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 14mm;
+    }
+
+    body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+    }
+
+    // Esconde toda a chrome do app
+    .app-sidebar,
+    .app-topbar,
+    .app-footer,
+    .app-sidebar-overlay,
+    .no-print { display: none !important; }
+
+    .app-shell { display: block !important; }
+    .app-container { padding: 0 !important; }
+    .app-main {
+        padding: 0 !important;
+        background: #FFFFFF !important;
+    }
+
+    // Cards em print: sem sombra, sem fundo escuro
+    .card,
+    .data-table,
+    .kpi-card {
+        box-shadow: none !important;
+        border: 1px solid #E5E7EB !important;
+        page-break-inside: avoid;
+    }
+
+    a { color: #000000 !important; text-decoration: none !important; }
+}

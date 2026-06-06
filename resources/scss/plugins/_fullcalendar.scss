@@ -1,0 +1,45 @@
+// =====================================================================
+// FullCalendar 6 — calendário (CSS importado dinamicamente nos plugins JS)
+// =====================================================================
+
+.fc {
+    font-family: $font-family-sans-serif;
+
+    .fc-button {
+        background: #FFFFFF;
+        border: 1px solid $gray-200;
+        color: $gray-700;
+        font-weight: 500;
+        text-transform: none;
+        border-radius: $border-radius-sm !important;
+        padding: .375rem .75rem;
+        box-shadow: none;
+
+        &:not(:disabled):hover {
+            background: $gray-50;
+            border-color: $gray-300;
+            color: $gray-900;
+        }
+
+        &.fc-button-primary:not(:disabled).fc-button-active,
+        &.fc-button-primary:not(:disabled):active {
+            background: $primary;
+            border-color: $primary;
+            color: $brand-darker;
+        }
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .fc-event {
+        border-radius: 4px;
+        padding: 2px 4px;
+        font-size: .75rem;
+        border: 0;
+        background: $primary;
+        color: $brand-darker;
+    }
+}

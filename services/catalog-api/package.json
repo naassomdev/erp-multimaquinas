@@ -1,0 +1,18 @@
+{
+  "name": "multimaquinas-catalog-api",
+  "version": "3.1.0",
+  "description": "Microserviço interno do ERP Multimáquinas — proxy de catálogo (Felap, ToolServiceNet, Bosch, Milwaukee) para o painel do técnico.",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js",
+    "pm2":   "pm2 start ecosystem.config.cjs"
+  },
+  "dependencies": {
+    "cors":       "^2.8.5",
+    "express":    "^4.18.2",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": { "node": ">=18.0.0" }
+}

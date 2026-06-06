@@ -1,0 +1,25 @@
+.firecrawl/
+
+# Backups automáticos
+*.bak
+*.bak_*
+*~
+_backups/
+.backups/
+backup/
+backups/
+
+# Dependências (não vão pro GitHub - são reinstaladas)
+node_modules/
+vendor/
+
+# Laravel
+.env
+/public/hot
+/public/build/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+*.log

@@ -1,0 +1,47 @@
+*************************** 1. row ***************************
+       Table: os_equipamento
+Create Table: CREATE TABLE `os_equipamento` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `os_id` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ordem_idx` int unsigned NOT NULL DEFAULT '0',
+  `nome` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `serie` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `defeito` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `voltagem` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `cx` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `status_equip` enum('aberta','andamento','montagem','pronto','cancelado','retirado','devolvido','descartado') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'aberta' COMMENT 'Status atual do equipamento dentro da OS',
+  `descarte_autorizado_em` datetime DEFAULT NULL COMMENT 'Quando o cliente autorizou o descarte deste equipamento',
+  `descarte_autorizado_por` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nome do cliente/responsável que autorizou o descarte',
+  `descarte_autorizado_uid` int unsigned DEFAULT NULL COMMENT 'FK users.id — funcionário que registrou a autorização de descarte',
+  `descarte_meio` enum('presencial','telefone','whatsapp','email') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Canal pelo qual o cliente autorizou o descarte',
+  `devolucao_em` datetime DEFAULT NULL COMMENT 'Quando o equipamento foi fisicamente devolvido ao cliente',
+  `devolucao_uid` int unsigned DEFAULT NULL COMMENT 'FK users.id — funcionário que registrou a devolução',
+  `vista_explodida` varchar(512) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `obs_int` text COLLATE utf8mb4_unicode_ci,
+  `obs_cli` text COLLATE utf8mb4_unicode_ci,
+  `pecas_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `fotos_os_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Fotos tiradas na entrada (OS)',
+  `fotos_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin COMMENT 'Fotos de análise do técnico',
+  `em_garantia` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Equipamento está em garantia?',
+  `tipo_garantia` enum('loja','fabricante') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Tipo de garantia: pela loja ou pelo fabricante',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_os_ordem` (`os_id`,`ordem_idx`),
+  KEY `idx_garantia` (`em_garantia`),
+  CONSTRAINT `fk_os_equip_os` FOREIGN KEY (`os_id`) REFERENCES `ordem_servico` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `os_equipamento_chk_1` CHECK (json_valid(`pecas_json`)),
+  CONSTRAINT `os_equipamento_chk_2` CHECK (json_valid(`fotos_os_json`)),
+  CONSTRAINT `os_equipamento_chk_3` CHECK (json_valid(`fotos_json`))
+) ENGINE=InnoDB AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+*************************** 1. row ***************************
+       Table: notificacoes_tecnico
+Create Table: CREATE TABLE `notificacoes_tecnico` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `os_id` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `equip_idx` int unsigned NOT NULL DEFAULT '0',
+  `tipo` enum('aprovado','cancelado','pronto','info','descarte') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'info' COMMENT 'Tipo da notificação',
+  `mensagem` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `lida` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_notif_lida` (`lida`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

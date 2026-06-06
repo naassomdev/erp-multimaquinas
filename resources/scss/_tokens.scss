@@ -1,0 +1,46 @@
+// =====================================================================
+// Tokens semânticos — derivados das variáveis em _variables.scss
+// (cores de status, sombras de elevação, durações de transição etc.)
+// =====================================================================
+
+:root {
+    // Cores semânticas (uso em CSS direto fora do Bootstrap)
+    --color-bg-page:       #{$body-bg};
+    --color-bg-surface:    #{$card-bg};
+    --color-bg-elevated:   #FFFFFF;
+    --color-bg-muted:      #{$gray-100};
+
+    --color-text-primary:   #{$gray-900};
+    --color-text-secondary: #{$gray-600};
+    --color-text-muted:     #{$gray-500};
+    --color-text-inverted:  #FFFFFF;
+
+    --color-border:        #{$gray-200};
+    --color-border-strong: #{$gray-300};
+
+    --color-brand:         #{$brand-yellow};
+    --color-brand-hover:   #{$brand-yellow-hover};
+    --color-brand-soft:    #{$brand-yellow-soft};
+
+    // Status — usados em badges, alerts custom etc.
+    --color-status-success-bg:   #DCFCE7;
+    --color-status-success-fg:   #15803D;
+    --color-status-warning-bg:   #FEF3C7;
+    --color-status-warning-fg:   #B45309;
+    --color-status-danger-bg:    #FEE2E2;
+    --color-status-danger-fg:    #B91C1C;
+    --color-status-info-bg:      #DBEAFE;
+    --color-status-info-fg:      #1D4ED8;
+    --color-status-neutral-bg:   #{$gray-100};
+    --color-status-neutral-fg:   #{$gray-700};
+
+    // Elevações — usar em cards, modais, dropdowns
+    --shadow-1: 0 1px 2px rgba(0,0,0,.04), 0 1px 1px rgba(0,0,0,.03);
+    --shadow-2: 0 4px 6px -1px rgba(0,0,0,.06), 0 2px 4px -2px rgba(0,0,0,.04);
+    --shadow-3: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
+
+    // Transições — manter consistente entre componentes
+    --t-fast:    .12s ease;
+    --t-base:    .2s ease;
+    --t-slow:    .3s ease;
+}

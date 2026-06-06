@@ -1,0 +1,181 @@
+/* ── Sidebar layout ────────────────────────────────────────── */
+body { margin: 0; }
+.layout { display: flex; min-height: 100vh; }
+.main-area { flex: 1; min-width: 0; overflow-x: hidden; }
+
+/* ── Sidebar panel ──────────────────────────────────────────── */
+.sidebar {
+  width: 248px;
+  background: var(--s1, #1c1c1c);
+  border-right: 1px solid var(--bd, #333);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+  z-index: 90;
+}
+
+.sb-logo { padding: 18px 16px 12px; border-bottom: 1px solid var(--bd, #333); }
+.sb-logo .logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 19px; font-weight: 800;
+  color: var(--acc, #f59e0b); letter-spacing: 1px;
+}
+.sb-logo .logo-sub { font-size: 11px; color: var(--muted, #888); margin-top: 2px; }
+
+.sb-user { padding: 10px 16px; border-bottom: 1px solid var(--bd, #333); }
+.sb-user strong {
+  display: block; font-size: 14px;
+  color: var(--txt, #f0f0f0);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sb-user span {
+  font-size: 10px; color: var(--muted, #888);
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase; letter-spacing: .6px;
+}
+
+.sb-nav { padding: 6px 0; flex: 1; }
+.nav-label {
+  font-size: 9px; color: var(--dim, #555);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  padding: 10px 16px 3px; font-weight: 700;
+}
+.nav-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 16px;
+  color: var(--muted, #888);
+  text-decoration: none;
+  font-size: 13px; font-family: 'Barlow', sans-serif;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+  line-height: 1.3;
+}
+.nav-item:hover { background: rgba(255,255,255,.04); color: var(--txt, #f0f0f0); border-left-color: var(--acc, #f59e0b); }
+.nav-item.active { background: rgba(245,158,11,.08); color: var(--acc, #f59e0b); border-left-color: var(--acc, #f59e0b); }
+.nav-item.admin-item:hover { border-left-color: #8b5cf6; }
+.nav-item.locked { opacity: .4; pointer-events: none; cursor: not-allowed; }
+
+.nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; padding-top: 1px; }
+.nav-text small { color: var(--dim, #555); font-size: 11px; display: block; margin-top: 1px; }
+
+.badge-adm {
+  display: inline-block; background: #1e1b4b; color: #a78bfa;
+  font-size: 9px; padding: 1px 5px; border-radius: 3px;
+  margin-left: 4px; font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase; letter-spacing: .5px; vertical-align: middle;
+}
+
+.sb-footer { padding: 10px 16px; border-top: 1px solid var(--bd, #333); }
+.sb-footer a {
+  color: var(--muted, #888); font-size: 13px; text-decoration: none;
+  display: flex; align-items: center; gap: 6px; transition: color .15s;
+}
+.sb-footer a:hover { color: var(--red, #ef4444); }
+
+/* ── Hamburger button (visível só no mobile via media query) ─── */
+.sb-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 34px; height: 34px;
+  padding: 8px 6px;
+  background: var(--s2, #252525);
+  border: 1px solid var(--bd, #333);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color .2s;
+}
+.sb-hamburger:hover { border-color: var(--acc, #f59e0b); }
+.sb-hamburger span {
+  display: block; height: 2px;
+  background: var(--acc, #f59e0b);
+  border-radius: 2px;
+  transition: transform .25s, opacity .2s;
+  transform-origin: center;
+}
+/* Animação ☰ → ✕ */
+.sb-hamburger.sb-open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.sb-hamburger.sb-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.sb-hamburger.sb-open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+/* ── Mobile topbar (barra com hambúrguer, fixa no topo) ──────── */
+.sb-mobile-topbar { display: none; }
+
+/* ── Overlay backdrop ───────────────────────────────────────── */
+.sb-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 199;
+  background: rgba(0, 0, 0, .6);
+  /* sem backdrop-filter para não afetar z-index stacking context */
+}
+.sb-overlay.sb-open { display: block; }
+
+/* ── Print: sumir com tudo de navegação ──────────────────────── */
+@media print {
+  .sidebar, .sb-mobile-topbar, .sb-overlay { display: none !important; }
+  .layout  { display: block !important; padding-top: 0 !important; }
+  .main-area { padding: 0 !important; }
+}
+
+/* ── Desktop: garante que os elementos mobile fiquem ocultos ──── */
+@media (min-width: 769px) {
+  .sb-hamburger   { display: none; }
+  .sb-mobile-topbar { display: none; }
+  .sb-overlay     { display: none; }
+}
+
+/* ── Mobile: off-canvas sidebar ─────────────────────────────── */
+@media (max-width: 768px) {
+  /* Barra fixa no topo com hambúrguer + marca */
+  .sb-mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 50px; z-index: 198;
+    background: var(--s1, #1c1c1c);
+    border-bottom: 1px solid var(--bd, #333);
+    padding: 0 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  }
+  .sb-mobile-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px; font-weight: 800;
+    color: var(--acc, #f59e0b); letter-spacing: 1px;
+  }
+
+  /* Empurra o conteúdo para não ficar embaixo da barra fixa */
+  .layout {
+    flex-direction: column;
+    padding-top: 50px;
+  }
+
+  /* Sidebar fora da tela por padrão */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 200;
+    width: min(80vw, 280px);
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+    overflow-y: auto;
+    /* Sticky/height do desktop são sobrescritos — fixed já cobre isso */
+  }
+
+  /* Sidebar aberta: desliza para dentro */
+  .sidebar.sb-open {
+    transform: translateX(0);
+    box-shadow: 6px 0 28px rgba(0, 0, 0, .55);
+  }
+
+  /* Sticky topbar interno fica abaixo da barra mobile fixa */
+  .topbar {
+    top: 50px;
+  }
+}

@@ -1,0 +1,111 @@
+// =====================================================================
+// Forms — refinos sobre os defaults do Bootstrap
+// =====================================================================
+
+.form-label {
+    display: block;
+    font-size: $form-label-font-size;
+    font-weight: $form-label-font-weight;
+    color: $gray-700;
+    margin-bottom: $form-label-margin-bottom;
+}
+
+.form-control,
+.form-select {
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+
+    &:hover:not(:focus):not(:disabled) {
+        border-color: $gray-300;
+    }
+}
+
+// Required marker (asterisco vermelho discreto)
+.form-label .required {
+    color: $danger;
+    margin-left: .125rem;
+}
+
+// Help text
+.form-text {
+    font-size: .75rem;
+    color: $gray-500;
+    margin-top: .375rem;
+}
+
+// Field group (label + input + help) — facilita layouts em grid
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+// Validação — feedback visual customizado
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    background-image: none;     // remove ícone padrão Bootstrap
+    padding-right: $input-padding-x;
+}
+
+.invalid-feedback {
+    font-size: .75rem;
+    color: $danger;
+    margin-top: .25rem;
+}
+
+// Input com ícone à esquerda (busca, etc.)
+.input-icon {
+    position: relative;
+
+    > i {
+        position: absolute;
+        left: .75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: $gray-400;
+        font-size: 1rem;
+        pointer-events: none;
+    }
+
+    > .form-control {
+        padding-left: 2.25rem;
+    }
+}
+
+// File drop zone (estilo nativo, sem plugin)
+.file-drop {
+    border: 2px dashed $gray-300;
+    border-radius: $border-radius;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    background: $gray-50;
+    transition: border-color var(--t-fast), background var(--t-fast);
+    cursor: pointer;
+
+    &:hover {
+        border-color: $primary;
+        background: $brand-yellow-soft;
+    }
+
+    &.is-dragover {
+        border-color: $primary;
+        background: $brand-yellow-soft;
+        transform: scale(1.01);
+    }
+
+    i { font-size: 2rem; color: $gray-400; margin-bottom: .5rem; }
+}
+
+// Switch (Bootstrap form-switch — só ajustamos a cor)
+.form-switch .form-check-input:checked {
+    background-color: $primary;
+    border-color: $primary;
+}
+
+// Checkbox / radio focus mais visíveis com brand
+.form-check-input:focus {
+    border-color: rgba($primary, .6);
+    box-shadow: 0 0 0 .15rem rgba($primary, .25);
+}
+.form-check-input:checked {
+    background-color: $primary;
+    border-color: $primary;
+}

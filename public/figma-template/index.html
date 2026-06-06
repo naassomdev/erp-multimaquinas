@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multimáquinas ERP — Design Template para Figma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" rel="stylesheet">
+<style>
+/* =====================================================================
+   DESIGN TOKENS — Multimáquinas ERP
+   ===================================================================== */
+:root {
+  /* Brand Colors */
+  --brand-yellow:       #FFD32C;
+  --brand-yellow-hover: #F2C108;
+  --brand-yellow-soft:  #FFF7CC;
+  --brand-dark:         #1F2937;
+  --brand-darker:       #111827;
+
+  /* Gray Scale */
+  --gray-50:  #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-danger:  #EF4444;
+  --color-warning: #F59E0B;
+  --color-info:    #0EA5E9;
+
+  /* Status Badges */
+  --status-success-bg: #DCFCE7;
+  --status-success-fg: #15803D;
+  --status-warning-bg: #FEF3C7;
+  --status-warning-fg: #B45309;
+  --status-danger-bg:  #FEE2E2;
+  --status-danger-fg:  #B91C1C;
+  --status-info-bg:    #DBEAFE;
+  --status-info-fg:    #1D4ED8;
+  --status-neutral-bg: #F3F4F6;
+  --status-neutral-fg: #374151;
+  --status-brand-bg:   #FFF7CC;
+  --status-brand-fg:   #B45309;
+
+  /* Sidebar */
+  --sidebar-width:    256px;
+  --sidebar-bg:       #1F2937;
+  --sidebar-color:    #D1D5DB;
+
+  /* Topbar */
+  --topbar-height: 64px;
+
+  /* Shadows */
+  --shadow-1: 0 1px 2px rgba(0,0,0,.04), 0 1px 1px rgba(0,0,0,.03);
+  --shadow-2: 0 4px 6px -1px rgba(0,0,0,.06), 0 2px 4px -2px rgba(0,0,0,.04);
+  --shadow-3: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.05);
+
+  /* Border Radius */
+  --radius-sm: .375rem;
+  --radius:    .5rem;
+  --radius-lg: .75rem;
+  --radius-xl: 1rem;
+
+  /* Transitions */
+  --t-fast: .12s ease;
+  --t-base: .2s ease;
+}
+
+/* =====================================================================
+   RESET & BASE
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--gray-50);
+  color: var(--brand-darker);
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* =====================================================================
+   NAV — Página de navegação do template
+   ===================================================================== */
+.template-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 52px;
+  background: var(--brand-darker);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 9999;
+  gap: 1rem;
+  overflow-x: auto;
+}
+.template-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.template-nav__brand-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--brand-yellow);
+}
+.template-nav__brand span { font-size: .8125rem; font-weight: 600; color: #fff; }
+.template-nav__tabs {
+  display: flex;
+  gap: .25rem;
+  list-style: none;
+}
+.template-nav__tab {
+  padding: .3rem .75rem;
+  border-radius: var(--radius-sm);
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--gray-400);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--t-fast);
+  border: none;
+  background: transparent;
+}
+.template-nav__tab:hover { color: #fff; background: rgba(255,255,255,.08); }
+.template-nav__tab.active { color: var(--brand-yellow); background: rgba(255,211,44,.1); }
+
+/* =====================================================================
+   SECTION PAGES
+   ===================================================================== */
+.page-section {
+  display: none;
+  padding-top: 52px;
+}
+.page-section.active { display: block; }
+
+/* =====================================================================
+   ===  1. LAYOUT SHELL  ===
+   ===================================================================== */
+.app-shell {
+  display: flex;
+  min-height: calc(100vh - 52px);
+}
+
+/* --- SIDEBAR --- */
+.app-sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-color);
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  flex-shrink: 0;
+}
+.app-sidebar__brand {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.app-sidebar__logo {
+  width: 36px; height: 36px;
+  border-radius: var(--radius);
+  background: var(--brand-yellow);
+  color: var(--brand-darker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.app-sidebar__brand-text {
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -.01em;
+}
+.app-sidebar__nav {
+  flex: 1;
+  padding: .75rem;
+  overflow-y: auto;
+}
+.app-sidebar__section {
+  font-size: .65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gray-500);
+  padding: 1rem .75rem .25rem;
+}
+.app-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--gray-400);
+  text-decoration: none;
+  transition: background var(--t-fast), color var(--t-fast);
+  cursor: pointer;
+}
+.app-sidebar__item:hover {
+  background: rgba(255,255,255,.04);
+  color: #fff;
+}
+.app-sidebar__item.active {
+  background: rgba(255,211,44,.12);
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--brand-yellow);
+}
+.app-sidebar__item i { width: 20px; height: 20px; font-size: 1.125rem; flex-shrink: 0; }
+.app-sidebar__badge {
+  margin-left: auto;
+  font-size: .6875rem;
+  font-weight: 700;
+  padding: .125rem .375rem;
+  border-radius: 999px;
+  background: var(--color-danger);
+  color: #fff;
+}
+.app-sidebar__footer {
+  padding: .75rem;
+  border-top: 1px solid rgba(255,255,255,.05);
+}
+
+/* --- CONTAINER (topbar + main + footer) --- */
+.app-container { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.app-topbar {
+  height: var(--topbar-height);
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  box-shadow: 0 1px 2px rgba(0,0,0,.02);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  position: sticky;
+  top: 52px;
+  z-index: 100;
+}
+.app-topbar__left, .app-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.app-topbar__toggle {
+  background: transparent;
+  border: 0;
+  padding: .5rem;
+  border-radius: var(--radius);
+  color: var(--gray-600);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.app-topbar__toggle:hover { background: var(--gray-100); }
+.app-topbar__breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: .875rem;
+  color: var(--gray-500);
+}
+.app-topbar__breadcrumb .sep { margin: 0 .375rem; color: var(--gray-300); }
+.app-topbar__breadcrumb .current { color: var(--gray-900); font-weight: 500; }
+.app-topbar__search { position: relative; }
+.app-topbar__search input {
+  width: 280px; height: 38px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: var(--gray-50);
+  padding: 0 .75rem 0 2.25rem;
+  font-size: .875rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.app-topbar__search input:focus {
+  border-color: var(--brand-yellow);
+  background: #fff;
+}
+.app-topbar__search i {
+  position: absolute;
+  left: .75rem; top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+}
+.app-topbar__avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--brand-yellow);
+  color: var(--brand-darker);
+  font-weight: 600;
+  font-size: .8125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-topbar__user strong {
+  display: block;
+  font-size: .875rem;
+  color: var(--gray-900);
+  font-weight: 500;
+}
+.app-topbar__user small {
+  font-size: .75rem;
+  color: var(--gray-500);
+}
+.topbar-divider {
+  width: 1px; height: 28px;
+  background: var(--gray-200);
+  margin: 0 .25rem;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  background: var(--gray-50);
+}
+.app-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-500);
+  font-size: .8125rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* =====================================================================
+   PAGE HEADER
+   ===================================================================== */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.page-header__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.01em;
+}
+.page-header__subtitle {
+  font-size: .875rem;
+  color: var(--gray-500);
+  margin-top: .25rem;
+}
+.page-header__actions { display: flex; gap: .5rem; }
+
+/* =====================================================================
+   BUTTONS
+   ===================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  padding: .5rem 1rem;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--t-fast);
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--brand-yellow);
+  color: var(--brand-darker);
+  border-color: var(--brand-yellow);
+}
+.btn-primary:hover { background: var(--brand-yellow-hover); border-color: var(--brand-yellow-hover); }
+.btn-secondary {
+  background: #fff;
+  color: var(--gray-700);
+  border-color: var(--gray-200);
+}
+.btn-secondary:hover { background: var(--gray-50); border-color: var(--gray-300); }
+.btn-danger {
+  background: #fff;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.btn-danger:hover { background: #FEE2E2; }
+.btn-sm {
+  padding: .375rem .75rem;
+  font-size: .8125rem;
+}
+.btn-icon {
+  width: 32px; height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+  font-size: 1.0625rem;
+}
+.btn-icon:hover { background: var(--gray-100); color: var(--gray-900); }
+
+/* =====================================================================
+   KPI CARDS
+   ===================================================================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-1);
+  text-decoration: none;
+  display: block;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.kpi-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+.kpi-card__label {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--gray-500);
+}
+.kpi-card__icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+}
+.kpi-card__value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.kpi-card__hint {
+  font-size: .75rem;
+  color: var(--gray-400);
+  margin-top: .25rem;
+}
+/* Variantes */
+.kpi-card--brand .kpi-card__icon { background: var(--brand-yellow-soft); color: #B45309; }
+.kpi-card--success .kpi-card__icon { background: var(--status-success-bg); color: var(--status-success-fg); }
+.kpi-card--warning .kpi-card__icon { background: var(--status-warning-bg); color: var(--status-warning-fg); }
+.kpi-card--info .kpi-card__icon { background: var(--status-info-bg); color: var(--status-info-fg); }
+.kpi-card--danger .kpi-card__icon { background: var(--status-danger-bg); color: var(--status-danger-fg); }
+.kpi-card--brand { border-left: 3px solid var(--brand-yellow); }
+.kpi-card--success { border-left: 3px solid var(--color-success); }
+.kpi-card--warning { border-left: 3px solid var(--color-warning); }
+.kpi-card--info { border-left: 3px solid var(--color-info); }
+.kpi-card--danger { border-left: 3px solid var(--color-danger); }
+
+/* =====================================================================
+   CARDS
+   ===================================================================== */
+.card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  font-size: .9375rem;
+}
+.card-header i { color: var(--gray-400); font-size: 1.125rem; }
+.card-header .card-header__actions { margin-left: auto; }
+.card-body { padding: 1.25rem; }
+.card-footer {
+  padding: .875rem 1.25rem;
+  border-top: 1px solid var(--gray-100);
+  background: var(--gray-50);
+  font-size: .8125rem;
+  color: var(--gray-500);
+}
+
+/* =====================================================================
+   STATUS BADGES
+   ===================================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .25rem .625rem;
+  border-radius: 999px;
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .025em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge--success { background: var(--status-success-bg); color: var(--status-success-fg); }
+.badge--warning { background: var(--status-warning-bg); color: var(--status-warning-fg); }
+.badge--danger  { background: var(--status-danger-bg);  color: var(--status-danger-fg); }
+.badge--info    { background: var(--status-info-bg);    color: var(--status-info-fg); }
+.badge--neutral { background: var(--status-neutral-bg); color: var(--status-neutral-fg); }
+.badge--brand   { background: var(--brand-yellow-soft); color: #92400E; }
+
+/* =====================================================================
+   TABLE
+   ===================================================================== */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+table th {
+  padding: .875rem 1rem;
+  text-align: left;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  white-space: nowrap;
+}
+table td {
+  padding: .875rem 1rem;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+table tr:hover td { background: var(--gray-50); }
+table tr:last-child td { border-bottom: none; }
+.td-mono { font-family: ui-monospace, monospace; font-size: .8125rem; }
+.td-bold { font-weight: 600; color: var(--gray-900); }
+
+/* =====================================================================
+   FORMS
+   ===================================================================== */
+.form-label {
+  display: block;
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: .375rem;
+}
+.form-control {
+  width: 100%;
+  height: 38px;
+  padding: 0 .75rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: .9375rem;
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  color: var(--brand-darker);
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.form-control:focus {
+  border-color: rgba(255,211,44,.6);
+  box-shadow: 0 0 0 .15rem rgba(255,211,44,.25);
+}
+.form-control::placeholder { color: var(--gray-400); }
+textarea.form-control { height: auto; padding: .5rem .75rem; resize: vertical; }
+select.form-control { cursor: pointer; }
+.form-group { margin-bottom: 1rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.form-hint { font-size: .75rem; color: var(--gray-400); margin-top: .25rem; }
+.form-error { font-size: .75rem; color: var(--color-danger); margin-top: .25rem; }
+
+/* Input group */
+.input-group { position: relative; }
+.input-group .form-control { padding-left: 2.5rem; }
+.input-group__icon {
+  position: absolute;
+  left: .75rem; top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+/* =====================================================================
+   ALERTS
+   ===================================================================== */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .875rem 1.125rem;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  margin-bottom: 1rem;
+}
+.alert--success { background: var(--status-success-bg); color: var(--status-success-fg); border: 1px solid #BBF7D0; }
+.alert--danger  { background: var(--status-danger-bg);  color: var(--status-danger-fg);  border: 1px solid #FECACA; }
+.alert--warning { background: var(--status-warning-bg); color: var(--status-warning-fg); border: 1px solid #FDE68A; }
+.alert--info    { background: var(--status-info-bg);    color: var(--status-info-fg);    border: 1px solid #BFDBFE; }
+.alert i { font-size: 1.125rem; margin-top: .1rem; flex-shrink: 0; }
+
+/* =====================================================================
+   EMPTY STATE
+   ===================================================================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+.empty-state__icon {
+  width: 64px; height: 64px;
+  border-radius: var(--radius-xl);
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: var(--gray-400);
+  margin-bottom: 1rem;
+}
+.empty-state__title { font-size: 1rem; font-weight: 600; color: var(--gray-700); margin-bottom: .25rem; }
+.empty-state__desc { font-size: .875rem; color: var(--gray-400); }
+
+/* =====================================================================
+   SECTION HEADING (para o template de componentes)
+   ===================================================================== */
+.section-title {
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--gray-400);
+  margin-bottom: 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+.component-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 2rem;
+}
+.component-block { padding: 2rem; }
+
+/* =====================================================================
+   COLOR SWATCHES
+   ===================================================================== */
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 2rem;
+}
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+.swatch__color {
+  width: 64px; height: 64px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(0,0,0,.08);
+}
+.swatch__label {
+  font-size: .6875rem;
+  color: var(--gray-500);
+  text-align: center;
+  font-weight: 500;
+}
+.swatch__hex {
+  font-size: .625rem;
+  color: var(--gray-400);
+  font-family: monospace;
+}
+
+/* =====================================================================
+   TYPE SCALE
+   ===================================================================== */
+.type-sample {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.type-sample__meta {
+  flex-shrink: 0;
+  width: 160px;
+  font-size: .75rem;
+  color: var(--gray-400);
+  font-family: monospace;
+}
+.type-h1 { font-size: 1.75rem; font-weight: 700; }
+.type-h2 { font-size: 1.375rem; font-weight: 700; }
+.type-h3 { font-size: 1.125rem; font-weight: 600; }
+.type-h4 { font-size: 1rem;     font-weight: 600; }
+.type-body { font-size: .9375rem; font-weight: 400; }
+.type-sm  { font-size: .8125rem; font-weight: 400; }
+.type-xs  { font-size: .75rem;   font-weight: 400; }
+.type-mono { font-family: monospace; font-size: .875rem; }
+
+/* =====================================================================
+   SCREEN PREVIEW WRAPPERS
+   ===================================================================== */
+.screen-title {
+  background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+  color: #fff;
+  padding: 2.5rem 3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0;
+}
+.screen-title__badge {
+  background: rgba(255,211,44,.15);
+  color: var(--brand-yellow);
+  border: 1px solid rgba(255,211,44,.3);
+  padding: .25rem .75rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.screen-title h2 { font-size: 1.5rem; font-weight: 700; margin-top: .25rem; }
+.screen-title p { font-size: .875rem; color: var(--gray-400); margin-top: .25rem; }
+
+/* =====================================================================
+   OS/CLIENTES SPECIFIC COMPONENTS
+   ===================================================================== */
+.timeline {
+  position: relative;
+  padding-left: 1.75rem;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: .5rem; top: 0; bottom: 0;
+  width: 1px;
+  background: var(--gray-200);
+}
+.timeline__item {
+  position: relative;
+  padding-bottom: 1.25rem;
+}
+.timeline__dot {
+  position: absolute;
+  left: -1.25rem;
+  top: .3rem;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--brand-yellow);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px var(--brand-yellow);
+}
+.timeline__date { font-size: .75rem; color: var(--gray-400); margin-bottom: .125rem; }
+.timeline__text { font-size: .875rem; color: var(--gray-700); }
+
+/* =====================================================================
+   MODAL PREVIEW
+   ===================================================================== */
+.modal-preview {
+  background: rgba(17,24,39,.5);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  width: 100%;
+  max-width: 500px;
+}
+.modal__header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal__title { font-size: 1rem; font-weight: 600; color: var(--gray-900); }
+.modal__body { padding: 1.5rem; }
+.modal__footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--gray-100);
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+  background: var(--gray-50);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* =====================================================================
+   STATS / CHIPS
+   ===================================================================== */
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  padding: .375rem .75rem;
+  background: var(--gray-100);
+  border-radius: 999px;
+  font-size: .8125rem;
+  color: var(--gray-600);
+  font-weight: 500;
+}
+.stat-chip i { font-size: .875rem; }
+.stat-chip--up   { background: var(--status-success-bg); color: var(--status-success-fg); }
+.stat-chip--down { background: var(--status-danger-bg);  color: var(--status-danger-fg); }
+
+/* =====================================================================
+   MISC HELPERS
+   ===================================================================== */
+.fw-600 { font-weight: 600; }
+.text-muted { color: var(--gray-500); }
+.text-small { font-size: .875rem; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-gap { display: flex; align-items: center; gap: .5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.p-6 { padding: 1.5rem; }
+.divider { height: 1px; background: var(--gray-100); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV BAR (Template Navigation) -->
+<nav class="template-nav">
+  <div class="template-nav__brand">
+    <div class="template-nav__brand-dot"></div>
+    <span>Multimáquinas — Figma Template</span>
+  </div>
+  <ul class="template-nav__tabs">
+    <li><button class="template-nav__tab active" onclick="showPage('layout')">Layout Shell</button></li>
+    <li><button class="template-nav__tab" onclick="showPage('components')">Componentes</button></li>
+    <li><button class="template-nav__tab" onclick="showPage('colors')">Design Tokens</button></li>
+    <li><button class="template-nav__tab" onclick="showPage('dashboard')">Dashboard</button></li>
+    <li><button class="template-nav__tab" onclick="showPage('os-list')">Lista de OS</button></li>
+    <li><button class="template-nav__tab" onclick="showPage('os-detail')">Detalhes OS</button></li>
+    <li><button class="template-nav__tab" onclick="showPage('forms')">Formulários</button></li>
+  </ul>
+</nav>
+
+<!-- ===================================================================
+     PAGE 1: LAYOUT SHELL
+     =================================================================== -->
+<section id="page-layout" class="page-section active">
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+    <aside class="app-sidebar">
+      <div class="app-sidebar__brand">
+        <div class="app-sidebar__logo"><i class="ph-bold ph-wrench"></i></div>
+        <span class="app-sidebar__brand-text">Multimáquinas</span>
+      </div>
+      <nav class="app-sidebar__nav">
+        <a class="app-sidebar__item active"><i class="ph ph-squares-four"></i><span>Dashboard</span></a>
+        <div class="app-sidebar__section">Operação</div>
+        <a class="app-sidebar__item"><i class="ph ph-users"></i><span>Clientes</span></a>
+        <a class="app-sidebar__item"><i class="ph ph-file-text"></i><span>Ordens de Serviço</span></a>
+        <div class="app-sidebar__section">Bancada</div>
+        <a class="app-sidebar__item"><i class="ph ph-wrench"></i><span>Painel Técnico</span></a>
+        <a class="app-sidebar__item"><i class="ph ph-currency-dollar"></i><span>Orçamentos</span></a>
+        <a class="app-sidebar__item"><i class="ph ph-shopping-cart-simple"></i><span>Compras</span></a>
+        <div class="app-sidebar__section">Administrativo</div>
+        <a class="app-sidebar__item"><i class="ph ph-package"></i><span>Estoque</span></a>
+        <a class="app-sidebar__item"><i class="ph ph-chart-line"></i><span>Financeiro</span></a>
+        <a class="app-sidebar__item"><i class="ph ph-file-text"></i><span>NFS-e</span></a>
+        <a class="app-sidebar__item"><i class="ph ph-table"></i><span>Tabela M.O.</span></a>
+        <div class="app-sidebar__section">Atenção</div>
+        <a class="app-sidebar__item"><i class="ph ph-warning"></i><span>Alertas Retirada</span><span class="app-sidebar__badge">3</span></a>
+      </nav>
+      <div class="app-sidebar__footer">
+        <a class="app-sidebar__item"><i class="ph ph-sign-out"></i><span>Sair</span></a>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <div class="app-container">
+      <header class="app-topbar">
+        <div class="app-topbar__left">
+          <button class="app-topbar__toggle"><i class="ph ph-list"></i></button>
+          <nav class="app-topbar__breadcrumb">
+            <span>Sistema</span>
+            <span class="sep"><i class="ph ph-caret-right"></i></span>
+            <span class="current">Dashboard</span>
+          </nav>
+        </div>
+        <div class="app-topbar__right">
+          <div class="app-topbar__search">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="search" placeholder="Buscar OS, cliente, peça...">
+          </div>
+          <button class="app-topbar__toggle"><i class="ph ph-sun"></i></button>
+          <div class="topbar-divider"></div>
+          <div class="app-topbar__user" style="text-align:right">
+            <strong>João Silva</strong>
+            <small>Admin</small>
+          </div>
+          <div class="app-topbar__avatar">J</div>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">Visão Geral</h1>
+            <p class="page-header__subtitle">Olá, <strong>João</strong> — resumo das atividades e métricas do sistema.</p>
+          </div>
+          <div class="page-header__actions">
+            <button class="btn btn-secondary"><i class="ph ph-user-plus"></i> Novo Cliente</button>
+            <button class="btn btn-primary"><i class="ph ph-plus"></i> Nova OS</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <a class="kpi-card kpi-card--brand" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">OS Abertas</span>
+              <span class="kpi-card__icon"><i class="ph ph-file-text"></i></span>
+            </div>
+            <div class="kpi-card__value">47</div>
+            <div class="kpi-card__hint">Ordens em andamento</div>
+          </a>
+          <a class="kpi-card kpi-card--info" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">OS Hoje</span>
+              <span class="kpi-card__icon"><i class="ph ph-clipboard-text"></i></span>
+            </div>
+            <div class="kpi-card__value">12</div>
+            <div class="kpi-card__hint">Entradas do dia</div>
+          </a>
+          <a class="kpi-card kpi-card--success" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Retiradas Hoje</span>
+              <span class="kpi-card__icon"><i class="ph ph-package"></i></span>
+            </div>
+            <div class="kpi-card__value">8</div>
+            <div class="kpi-card__hint">Aparelhos entregues</div>
+          </a>
+          <a class="kpi-card kpi-card--success" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Receita Hoje</span>
+              <span class="kpi-card__icon"><i class="ph ph-currency-dollar"></i></span>
+            </div>
+            <div class="kpi-card__value">R$ 3.240</div>
+            <div class="kpi-card__hint">Valor recebido</div>
+          </a>
+          <a class="kpi-card kpi-card--info" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Receita do Mês</span>
+              <span class="kpi-card__icon"><i class="ph ph-trend-up"></i></span>
+            </div>
+            <div class="kpi-card__value">R$ 48.750</div>
+            <div class="kpi-card__hint">Acumulado no período</div>
+          </a>
+          <a class="kpi-card kpi-card--warning" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">A Receber</span>
+              <span class="kpi-card__icon"><i class="ph ph-clock"></i></span>
+            </div>
+            <div class="kpi-card__value">R$ 12.400</div>
+            <div class="kpi-card__hint">Faturas em aberto</div>
+          </a>
+          <a class="kpi-card kpi-card--brand" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Orçamentos Pend.</span>
+              <span class="kpi-card__icon"><i class="ph ph-file-text"></i></span>
+            </div>
+            <div class="kpi-card__value">5</div>
+            <div class="kpi-card__hint">Aguardando aprovação</div>
+          </a>
+          <a class="kpi-card kpi-card--info" href="#">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">Clientes Ativos</span>
+              <span class="kpi-card__icon"><i class="ph ph-users"></i></span>
+            </div>
+            <div class="kpi-card__value">312</div>
+            <div class="kpi-card__hint">Cadastrados no sistema</div>
+          </a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <i class="ph ph-list"></i>
+            <span style="flex:1">Últimas Ordens de Serviço</span>
+            <a href="#" class="btn btn-sm btn-secondary">Ver todas <i class="ph ph-arrow-right"></i></a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nº OS</th><th>Cliente</th><th>Equipamento</th><th>Status</th><th>Data</th><th style="text-align:right">Valor</th><th style="text-align:center">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="td-bold td-mono">OS-00047</td>
+                  <td>Maria Fernanda Costa</td>
+                  <td class="text-muted text-small">Notebook Dell Inspiron 15</td>
+                  <td><span class="badge badge--warning">Andamento</span></td>
+                  <td class="text-muted text-small td-mono">23/05/2026</td>
+                  <td style="text-align:right" class="td-bold">R$ 350,00</td>
+                  <td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold td-mono">OS-00046</td>
+                  <td>Carlos Eduardo Mendes</td>
+                  <td class="text-muted text-small">Impressora HP LaserJet</td>
+                  <td><span class="badge badge--brand">Aguard. Peça</span></td>
+                  <td class="text-muted text-small td-mono">22/05/2026</td>
+                  <td style="text-align:right" class="td-bold">R$ 180,00</td>
+                  <td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold td-mono">OS-00045</td>
+                  <td>Ana Beatriz Souza</td>
+                  <td class="text-muted text-small">Smartphone Samsung A52</td>
+                  <td><span class="badge badge--success">Concluída</span></td>
+                  <td class="text-muted text-small td-mono">21/05/2026</td>
+                  <td style="text-align:right" class="td-bold">R$ 220,00</td>
+                  <td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold td-mono">OS-00044</td>
+                  <td>Roberto Lima Santos</td>
+                  <td class="text-muted text-small">PC Desktop — Win11</td>
+                  <td><span class="badge badge--info">Aberta</span></td>
+                  <td class="text-muted text-small td-mono">21/05/2026</td>
+                  <td style="text-align:right" class="td-bold">R$ 0,00</td>
+                  <td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold td-mono">OS-00043</td>
+                  <td>Juliana Matos</td>
+                  <td class="text-muted text-small">Tablet Lenovo Tab P11</td>
+                  <td><span class="badge badge--neutral">Entregue</span></td>
+                  <td class="text-muted text-small td-mono">20/05/2026</td>
+                  <td style="text-align:right" class="td-bold">R$ 150,00</td>
+                  <td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <footer class="app-footer">
+        <span>© 2026 Multimáquinas — ERP</span>
+        <span>v2.0</span>
+      </footer>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     PAGE 2: COMPONENTS
+     =================================================================== -->
+<section id="page-components" class="page-section">
+  <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div class="screen-title" style="border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <div>
+        <span class="screen-title__badge">UI Kit</span>
+        <h2>Componentes</h2>
+        <p>Todos os componentes reutilizáveis do sistema ERP</p>
+      </div>
+    </div>
+
+    <!-- BUTTONS -->
+    <h2 class="section-title">Botões</h2>
+    <div class="component-grid">
+      <button class="btn btn-primary"><i class="ph ph-plus"></i> Nova OS</button>
+      <button class="btn btn-secondary"><i class="ph ph-user-plus"></i> Novo Cliente</button>
+      <button class="btn btn-danger"><i class="ph ph-trash"></i> Excluir</button>
+      <button class="btn btn-primary btn-sm">Salvar</button>
+      <button class="btn btn-secondary btn-sm">Cancelar</button>
+      <button class="btn-icon" title="Visualizar"><i class="ph ph-eye"></i></button>
+      <button class="btn-icon" title="Editar"><i class="ph ph-pencil-simple"></i></button>
+      <button class="btn-icon" title="Excluir" style="color: var(--color-danger)"><i class="ph ph-trash"></i></button>
+    </div>
+
+    <!-- BADGES -->
+    <h2 class="section-title">Badges de Status</h2>
+    <div class="component-grid">
+      <span class="badge badge--info">Aberta</span>
+      <span class="badge badge--warning">Andamento</span>
+      <span class="badge badge--brand">Aguard. Peça</span>
+      <span class="badge badge--success">Concluída</span>
+      <span class="badge badge--success">Pronto Retirar</span>
+      <span class="badge badge--neutral">Entregue</span>
+      <span class="badge badge--neutral">Retirado</span>
+      <span class="badge badge--danger">Cancelada</span>
+    </div>
+
+    <!-- ALERTS -->
+    <h2 class="section-title">Alertas / Flash Messages</h2>
+    <div class="alert alert--success"><i class="ph ph-check-circle"></i><span><strong>Sucesso!</strong> Ordem de serviço criada com sucesso.</span></div>
+    <div class="alert alert--danger"><i class="ph ph-x-circle"></i><span><strong>Erro!</strong> Não foi possível salvar as alterações.</span></div>
+    <div class="alert alert--warning"><i class="ph ph-warning"></i><span><strong>Atenção!</strong> 3 OS aguardando há mais de 30 dias.</span></div>
+    <div class="alert alert--info"><i class="ph ph-info"></i><span><strong>Info:</strong> O sistema será atualizado esta noite às 02h00.</span></div>
+
+    <!-- CARDS -->
+    <h2 class="section-title">Cards</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+      <div class="card">
+        <div class="card-header">
+          <i class="ph ph-info"></i>
+          Card com Header e Footer
+          <div class="card-header__actions">
+            <button class="btn-icon"><i class="ph ph-dots-three-vertical"></i></button>
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="text-muted text-small">Conteúdo do card. Use para agrupar informações relacionadas em uma superfície branca elevada.</p>
+        </div>
+        <div class="card-footer">Atualizado há 5 minutos</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><i class="ph ph-clock"></i> Timeline / Histórico</div>
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__date">23/05/2026 09:45</div>
+              <div class="timeline__text"><strong>OS criada</strong> — Recebido pelo balcão.</div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot"></div>
+              <div class="timeline__date">23/05/2026 10:30</div>
+              <div class="timeline__text"><strong>Em andamento</strong> — Técnico João iniciou o reparo.</div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot" style="background: var(--color-warning); box-shadow: 0 0 0 2px var(--color-warning)"></div>
+              <div class="timeline__date">23/05/2026 14:00</div>
+              <div class="timeline__text"><strong>Aguardando peça</strong> — Tampa traseira solicitada.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <h2 class="section-title">Empty State</h2>
+    <div class="card" style="max-width: 480px; margin-bottom: 2rem;">
+      <div class="empty-state">
+        <div class="empty-state__icon"><i class="ph ph-tray"></i></div>
+        <div class="empty-state__title">Nenhuma OS encontrada</div>
+        <div class="empty-state__desc">Tente ajustar os filtros ou crie uma nova Ordem de Serviço.</div>
+        <div style="margin-top: 1.5rem;">
+          <button class="btn btn-primary"><i class="ph ph-plus"></i> Nova OS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL -->
+    <h2 class="section-title">Modal</h2>
+    <div class="modal-preview" style="margin-bottom: 2rem;">
+      <div class="modal">
+        <div class="modal__header">
+          <span class="modal__title">Confirmar Exclusão</span>
+          <button class="btn-icon"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="modal__body">
+          <div class="alert alert--danger" style="margin-bottom:0"><i class="ph ph-warning"></i><span>Esta ação não pode ser desfeita. O cliente e todos os seus dados serão removidos permanentemente.</span></div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn btn-secondary">Cancelar</button>
+          <button class="btn btn-danger"><i class="ph ph-trash"></i> Excluir Permanentemente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT CHIPS -->
+    <h2 class="section-title">Stat Chips</h2>
+    <div class="component-grid">
+      <span class="stat-chip stat-chip--up"><i class="ph ph-trend-up"></i> +12% este mês</span>
+      <span class="stat-chip stat-chip--down"><i class="ph ph-trend-down"></i> -3% vs ontem</span>
+      <span class="stat-chip"><i class="ph ph-clock"></i> Atualizado há 2min</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     PAGE 3: DESIGN TOKENS
+     =================================================================== -->
+<section id="page-colors" class="page-section">
+  <div style="padding: 2rem; max-width: 1100px; margin: 0 auto;">
+    <div class="screen-title" style="border-radius: var(--radius-lg); margin-bottom: 2rem;">
+      <div>
+        <span class="screen-title__badge">Tokens</span>
+        <h2>Design Tokens</h2>
+        <p>Paleta de cores, tipografia e espaçamento do sistema</p>
+      </div>
+    </div>
+
+    <!-- BRAND -->
+    <h2 class="section-title">Brand Colors</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__color" style="background:#FFD32C"></div><div class="swatch__label">Brand Yellow</div><div class="swatch__hex">#FFD32C</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#F2C108"></div><div class="swatch__label">Yellow Hover</div><div class="swatch__hex">#F2C108</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#FFF7CC"></div><div class="swatch__label">Yellow Soft</div><div class="swatch__hex">#FFF7CC</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#1F2937"></div><div class="swatch__label">Brand Dark</div><div class="swatch__hex">#1F2937</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#111827"></div><div class="swatch__label">Brand Darker</div><div class="swatch__hex">#111827</div></div>
+    </div>
+
+    <!-- SEMANTIC -->
+    <h2 class="section-title">Semantic Colors</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__color" style="background:#10B981"></div><div class="swatch__label">Success</div><div class="swatch__hex">#10B981</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#EF4444"></div><div class="swatch__label">Danger</div><div class="swatch__hex">#EF4444</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#F59E0B"></div><div class="swatch__label">Warning</div><div class="swatch__hex">#F59E0B</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#0EA5E9"></div><div class="swatch__label">Info</div><div class="swatch__hex">#0EA5E9</div></div>
+    </div>
+
+    <!-- GRAYS -->
+    <h2 class="section-title">Gray Scale</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__color" style="background:#F9FAFB; border: 1px solid #eee"></div><div class="swatch__label">Gray 50</div><div class="swatch__hex">#F9FAFB</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#F3F4F6"></div><div class="swatch__label">Gray 100</div><div class="swatch__hex">#F3F4F6</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#E5E7EB"></div><div class="swatch__label">Gray 200</div><div class="swatch__hex">#E5E7EB</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#D1D5DB"></div><div class="swatch__label">Gray 300</div><div class="swatch__hex">#D1D5DB</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#9CA3AF"></div><div class="swatch__label">Gray 400</div><div class="swatch__hex">#9CA3AF</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#6B7280"></div><div class="swatch__label">Gray 500</div><div class="swatch__hex">#6B7280</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#4B5563"></div><div class="swatch__label">Gray 600</div><div class="swatch__hex">#4B5563</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#374151"></div><div class="swatch__label">Gray 700</div><div class="swatch__hex">#374151</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#1F2937"></div><div class="swatch__label">Gray 800</div><div class="swatch__hex">#1F2937</div></div>
+      <div class="swatch"><div class="swatch__color" style="background:#111827"></div><div class="swatch__label">Gray 900</div><div class="swatch__hex">#111827</div></div>
+    </div>
+
+    <!-- STATUS BACKGROUNDS -->
+    <h2 class="section-title">Status — Backgrounds e Foregrounds</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .75rem; margin-bottom: 2rem;">
+      <div style="padding:1rem; background: #DCFCE7; border-radius: var(--radius); border: 1px solid #BBF7D0;">
+        <div style="font-size:.75rem; font-weight:600; color:#15803D; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem">Success</div>
+        <div style="color:#15803D; font-size:.875rem">BG: #DCFCE7 / FG: #15803D</div>
+      </div>
+      <div style="padding:1rem; background: #FEF3C7; border-radius: var(--radius); border: 1px solid #FDE68A;">
+        <div style="font-size:.75rem; font-weight:600; color:#B45309; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem">Warning</div>
+        <div style="color:#B45309; font-size:.875rem">BG: #FEF3C7 / FG: #B45309</div>
+      </div>
+      <div style="padding:1rem; background: #FEE2E2; border-radius: var(--radius); border: 1px solid #FECACA;">
+        <div style="font-size:.75rem; font-weight:600; color:#B91C1C; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem">Danger</div>
+        <div style="color:#B91C1C; font-size:.875rem">BG: #FEE2E2 / FG: #B91C1C</div>
+      </div>
+      <div style="padding:1rem; background: #DBEAFE; border-radius: var(--radius); border: 1px solid #BFDBFE;">
+        <div style="font-size:.75rem; font-weight:600; color:#1D4ED8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem">Info</div>
+        <div style="color:#1D4ED8; font-size:.875rem">BG: #DBEAFE / FG: #1D4ED8</div>
+      </div>
+    </div>
+
+    <!-- TYPOGRAPHY -->
+    <h2 class="section-title">Escala Tipográfica — Inter</h2>
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-body">
+        <div class="type-sample"><div class="type-sample__meta">H1 · 1.75rem · 700</div><span class="type-h1">Visão Geral do Sistema</span></div>
+        <div class="type-sample"><div class="type-sample__meta">H2 · 1.375rem · 700</div><span class="type-h2">Ordens de Serviço</span></div>
+        <div class="type-sample"><div class="type-sample__meta">H3 · 1.125rem · 600</div><span class="type-h3">Detalhes do Cliente</span></div>
+        <div class="type-sample"><div class="type-sample__meta">H4 · 1rem · 600</div><span class="type-h4">Informações do Equipamento</span></div>
+        <div class="type-sample"><div class="type-sample__meta">Body · 0.9375rem · 400</div><span class="type-body">Texto padrão do corpo — informações gerais e descrições.</span></div>
+        <div class="type-sample"><div class="type-sample__meta">Small · 0.8125rem · 400</div><span class="type-sm">Texto secundário, labels de formulário e hints.</span></div>
+        <div class="type-sample"><div class="type-sample__meta">XS · 0.75rem · 400</div><span class="type-xs">Metadados, timestamps e informações de contexto.</span></div>
+        <div class="type-sample"><div class="type-sample__meta">Mono · 0.875rem</div><span class="type-mono">OS-00047 · R$ 3.240,00</span></div>
+      </div>
+    </div>
+
+    <!-- SPACING -->
+    <h2 class="section-title">Border Radius</h2>
+    <div class="component-grid" style="margin-bottom: 2rem;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:.5rem">
+        <div style="width:64px;height:64px;background:var(--brand-yellow);border-radius:.375rem"></div>
+        <span class="type-xs text-muted">sm · 0.375rem</span>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:.5rem">
+        <div style="width:64px;height:64px;background:var(--brand-yellow);border-radius:.5rem"></div>
+        <span class="type-xs text-muted">base · 0.5rem</span>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:.5rem">
+        <div style="width:64px;height:64px;background:var(--brand-yellow);border-radius:.75rem"></div>
+        <span class="type-xs text-muted">lg · 0.75rem</span>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:.5rem">
+        <div style="width:64px;height:64px;background:var(--brand-yellow);border-radius:1rem"></div>
+        <span class="type-xs text-muted">xl · 1rem</span>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:.5rem">
+        <div style="width:64px;height:64px;background:var(--brand-yellow);border-radius:999px"></div>
+        <span class="type-xs text-muted">pill · 999px</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     PAGE 4: DASHBOARD (ISOLATED)
+     =================================================================== -->
+<section id="page-dashboard" class="page-section">
+  <div style="background: var(--gray-800); padding: 1.5rem; text-align:center; color: var(--gray-400); font-size:.875rem">
+    📐 Visualização: Dashboard — 1440px wide
+  </div>
+  <!-- Full replicated layout shown here: point to layout tab for full view -->
+  <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-header__title"><i class="ph ph-squares-four" style="color: var(--brand-yellow)"></i> Visão Geral</h1>
+        <p class="page-header__subtitle">Resumo das atividades e métricas do sistema ERP.</p>
+      </div>
+      <div class="page-header__actions">
+        <button class="btn btn-secondary"><i class="ph ph-user-plus"></i> Novo Cliente</button>
+        <button class="btn btn-primary"><i class="ph ph-plus"></i> Nova OS</button>
+      </div>
+    </div>
+    <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <a class="kpi-card kpi-card--brand" href="#"><div class="kpi-card__top"><span class="kpi-card__label">OS Abertas</span><span class="kpi-card__icon"><i class="ph ph-file-text"></i></span></div><div class="kpi-card__value">47</div><div class="kpi-card__hint">Ordens em andamento</div></a>
+      <a class="kpi-card kpi-card--info" href="#"><div class="kpi-card__top"><span class="kpi-card__label">OS Hoje</span><span class="kpi-card__icon"><i class="ph ph-clipboard-text"></i></span></div><div class="kpi-card__value">12</div><div class="kpi-card__hint">Entradas do dia</div></a>
+      <a class="kpi-card kpi-card--success" href="#"><div class="kpi-card__top"><span class="kpi-card__label">Retiradas Hoje</span><span class="kpi-card__icon"><i class="ph ph-package"></i></span></div><div class="kpi-card__value">8</div><div class="kpi-card__hint">Aparelhos entregues</div></a>
+      <a class="kpi-card kpi-card--success" href="#"><div class="kpi-card__top"><span class="kpi-card__label">Receita Hoje</span><span class="kpi-card__icon"><i class="ph ph-currency-dollar"></i></span></div><div class="kpi-card__value">R$ 3.240</div><div class="kpi-card__hint">Valor recebido</div></a>
+      <a class="kpi-card kpi-card--info" href="#"><div class="kpi-card__top"><span class="kpi-card__label">Receita do Mês</span><span class="kpi-card__icon"><i class="ph ph-trend-up"></i></span></div><div class="kpi-card__value">R$ 48.750</div><div class="kpi-card__hint">Acumulado no período</div></a>
+      <a class="kpi-card kpi-card--warning" href="#"><div class="kpi-card__top"><span class="kpi-card__label">A Receber</span><span class="kpi-card__icon"><i class="ph ph-clock"></i></span></div><div class="kpi-card__value">R$ 12.400</div><div class="kpi-card__hint">Faturas em aberto</div></a>
+      <a class="kpi-card kpi-card--brand" href="#"><div class="kpi-card__top"><span class="kpi-card__label">Orçamentos Pend.</span><span class="kpi-card__icon"><i class="ph ph-file-text"></i></span></div><div class="kpi-card__value">5</div><div class="kpi-card__hint">Aguardando aprovação</div></a>
+      <a class="kpi-card kpi-card--info" href="#"><div class="kpi-card__top"><span class="kpi-card__label">Clientes Ativos</span><span class="kpi-card__icon"><i class="ph ph-users"></i></span></div><div class="kpi-card__value">312</div><div class="kpi-card__hint">Cadastrados no sistema</div></a>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="ph ph-list"></i><span style="flex:1">Últimas Ordens de Serviço</span><a href="#" class="btn btn-sm btn-secondary">Ver todas <i class="ph ph-arrow-right"></i></a></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nº OS</th><th>Cliente</th><th>Equipamento</th><th>Status</th><th>Data</th><th style="text-align:right">Valor</th><th style="text-align:center">Ações</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-mono">OS-00047</td><td>Maria Fernanda Costa</td><td class="text-muted text-small">Notebook Dell Inspiron 15</td><td><span class="badge badge--warning">Andamento</span></td><td class="text-muted text-small td-mono">23/05/2026</td><td style="text-align:right" class="td-bold">R$ 350,00</td><td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td></tr>
+            <tr><td class="td-bold td-mono">OS-00046</td><td>Carlos Eduardo Mendes</td><td class="text-muted text-small">Impressora HP LaserJet</td><td><span class="badge badge--brand">Aguard. Peça</span></td><td class="text-muted text-small td-mono">22/05/2026</td><td style="text-align:right" class="td-bold">R$ 180,00</td><td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td></tr>
+            <tr><td class="td-bold td-mono">OS-00045</td><td>Ana Beatriz Souza</td><td class="text-muted text-small">Smartphone Samsung A52</td><td><span class="badge badge--success">Concluída</span></td><td class="text-muted text-small td-mono">21/05/2026</td><td style="text-align:right" class="td-bold">R$ 220,00</td><td style="text-align:center"><button class="btn-icon"><i class="ph ph-eye"></i></button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     PAGE 5: LISTA DE OS
+     =================================================================== -->
+<section id="page-os-list" class="page-section">
+  <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-header__title"><i class="ph ph-file-text" style="color: var(--brand-yellow)"></i> Ordens de Serviço</h1>
+        <p class="page-header__subtitle">Gerencie todas as ordens de serviço abertas e histórico.</p>
+      </div>
+      <div class="page-header__actions">
+        <button class="btn btn-secondary"><i class="ph ph-funnel"></i> Filtrar</button>
+        <button class="btn btn-secondary"><i class="ph ph-export"></i> Exportar</button>
+        <button class="btn btn-primary"><i class="ph ph-plus"></i> Nova OS</button>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-body" style="padding: .875rem 1.25rem;">
+        <div style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap;">
+          <div class="input-group" style="flex: 1; min-width: 200px;">
+            <i class="ph ph-magnifying-glass input-group__icon"></i>
+            <input type="search" class="form-control" placeholder="Buscar OS, cliente, equipamento...">
+          </div>
+          <select class="form-control" style="width: 160px;">
+            <option>Todos os status</option>
+            <option>Aberta</option>
+            <option>Andamento</option>
+            <option>Aguardando peça</option>
+            <option>Concluída</option>
+            <option>Entregue</option>
+          </select>
+          <input type="date" class="form-control" style="width: 160px;">
+          <button class="btn btn-secondary btn-sm">Limpar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OS Table -->
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th><input type="checkbox" style="accent-color: var(--brand-yellow)"></th>
+            <th>Nº OS</th><th>Cliente</th><th>Equipamento</th><th>Status</th><th>Técnico</th><th>Data Entrada</th><th style="text-align:right">Valor</th><th style="text-align:center">Ações</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox" style="accent-color: var(--brand-yellow)"></td><td class="td-bold td-mono">OS-00047</td><td>Maria Fernanda Costa</td><td class="text-muted text-small">Notebook Dell Inspiron 15</td><td><span class="badge badge--warning">Andamento</span></td><td class="text-small">João Silva</td><td class="td-mono text-small text-muted">23/05/2026</td><td style="text-align:right" class="td-bold">R$ 350,00</td><td style="text-align:center"><button class="btn-icon" title="Ver"><i class="ph ph-eye"></i></button><button class="btn-icon" title="Editar"><i class="ph ph-pencil-simple"></i></button></td></tr>
+            <tr><td><input type="checkbox" style="accent-color: var(--brand-yellow)"></td><td class="td-bold td-mono">OS-00046</td><td>Carlos Eduardo Mendes</td><td class="text-muted text-small">Impressora HP LaserJet</td><td><span class="badge badge--brand">Aguard. Peça</span></td><td class="text-small">Pedro Alves</td><td class="td-mono text-small text-muted">22/05/2026</td><td style="text-align:right" class="td-bold">R$ 180,00</td><td style="text-align:center"><button class="btn-icon" title="Ver"><i class="ph ph-eye"></i></button><button class="btn-icon" title="Editar"><i class="ph ph-pencil-simple"></i></button></td></tr>
+            <tr><td><input type="checkbox" style="accent-color: var(--brand-yellow)"></td><td class="td-bold td-mono">OS-00045</td><td>Ana Beatriz Souza</td><td class="text-muted text-small">Smartphone Samsung A52</td><td><span class="badge badge--success">Concluída</span></td><td class="text-small">João Silva</td><td class="td-mono text-small text-muted">21/05/2026</td><td style="text-align:right" class="td-bold">R$ 220,00</td><td style="text-align:center"><button class="btn-icon" title="Ver"><i class="ph ph-eye"></i></button><button class="btn-icon" title="Editar"><i class="ph ph-pencil-simple"></i></button></td></tr>
+            <tr><td><input type="checkbox" style="accent-color: var(--brand-yellow)"></td><td class="td-bold td-mono">OS-00044</td><td>Roberto Lima Santos</td><td class="text-muted text-small">PC Desktop — Win11</td><td><span class="badge badge--info">Aberta</span></td><td class="text-small text-muted">—</td><td class="td-mono text-small text-muted">21/05/2026</td><td style="text-align:right" class="td-bold">R$ 0,00</td><td style="text-align:center"><button class="btn-icon" title="Ver"><i class="ph ph-eye"></i></button><button class="btn-icon" title="Editar"><i class="ph ph-pencil-simple"></i></button></td></tr>
+            <tr><td><input type="checkbox" style="accent-color: var(--brand-yellow)"></td><td class="td-bold td-mono">OS-00043</td><td>Juliana Matos</td><td class="text-muted text-small">Tablet Lenovo Tab P11</td><td><span class="badge badge--neutral">Entregue</span></td><td class="text-small">Maria Técnica</td><td class="td-mono text-small text-muted">20/05/2026</td><td style="text-align:right" class="td-bold">R$ 150,00</td><td style="text-align:center"><button class="btn-icon" title="Ver"><i class="ph ph-eye"></i></button><button class="btn-icon" title="Editar"><i class="ph ph-pencil-simple"></i></button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Mostrando <strong>5</strong> de <strong>47</strong> ordens</span>
+        <div class="flex-gap">
+          <button class="btn btn-secondary btn-sm" disabled><i class="ph ph-caret-left"></i></button>
+          <span class="text-small" style="padding: 0 .5rem">Pág. 1 / 10</span>
+          <button class="btn btn-secondary btn-sm"><i class="ph ph-caret-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     PAGE 6: DETALHES DA OS
+     =================================================================== -->
+<section id="page-os-detail" class="page-section">
+  <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+    <div class="page-header">
+      <div>
+        <div class="flex-gap" style="margin-bottom: .5rem;">
+          <a href="#" class="btn btn-secondary btn-sm"><i class="ph ph-arrow-left"></i> Voltar</a>
+          <span class="badge badge--warning"><i class="ph ph-circle-wavy-warning"></i> Andamento</span>
+        </div>
+        <h1 class="page-header__title">OS-00047</h1>
+        <p class="page-header__subtitle">Entrada em 23/05/2026 às 09:45 · Técnico: João Silva</p>
+      </div>
+      <div class="page-header__actions">
+        <button class="btn btn-secondary"><i class="ph ph-printer"></i> Imprimir</button>
+        <button class="btn btn-secondary"><i class="ph ph-pencil-simple"></i> Editar</button>
+        <button class="btn btn-primary"><i class="ph ph-check"></i> Concluir OS</button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+      <!-- Coluna Principal -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Info do cliente e equipamento -->
+        <div class="card">
+          <div class="card-header"><i class="ph ph-user"></i> Cliente &amp; Equipamento</div>
+          <div class="card-body">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+              <div>
+                <div class="section-title" style="border-bottom: none; margin-bottom: .5rem;">Cliente</div>
+                <div class="td-bold" style="font-size: 1rem; margin-bottom: .25rem;">Maria Fernanda Costa</div>
+                <div class="text-muted text-small">(11) 99999-1234</div>
+                <div class="text-muted text-small">maria@email.com</div>
+                <div class="text-muted text-small" style="margin-top: .5rem;">Rua das Flores, 123 — SP</div>
+              </div>
+              <div>
+                <div class="section-title" style="border-bottom: none; margin-bottom: .5rem;">Equipamento</div>
+                <div class="td-bold" style="font-size: 1rem; margin-bottom: .25rem;">Notebook Dell Inspiron 15</div>
+                <div class="text-muted text-small">Nº Série: DLL-2024-AB7810</div>
+                <div class="text-muted text-small">Cor: Prata</div>
+                <div class="text-muted text-small" style="margin-top: .5rem;"><strong>Defeito:</strong> Não liga após queda</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Serviços -->
+        <div class="card">
+          <div class="card-header"><i class="ph ph-wrench"></i> Serviços Realizados <div class="card-header__actions"><button class="btn btn-sm btn-secondary"><i class="ph ph-plus"></i> Adicionar</button></div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Descrição</th><th style="text-align:center">Qtd</th><th style="text-align:right">Unit.</th><th style="text-align:right">Total</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Diagnóstico e avaliação</td><td style="text-align:center">1</td><td style="text-align:right" class="td-mono">R$ 50,00</td><td style="text-align:right" class="td-bold td-mono">R$ 50,00</td><td><button class="btn-icon" style="color:var(--color-danger)"><i class="ph ph-trash"></i></button></td></tr>
+                <tr><td>Troca da bateria interna</td><td style="text-align:center">1</td><td style="text-align:right" class="td-mono">R$ 180,00</td><td style="text-align:right" class="td-bold td-mono">R$ 180,00</td><td><button class="btn-icon" style="color:var(--color-danger)"><i class="ph ph-trash"></i></button></td></tr>
+                <tr><td>Mão de obra técnica</td><td style="text-align:center">2h</td><td style="text-align:right" class="td-mono">R$ 60,00</td><td style="text-align:right" class="td-bold td-mono">R$ 120,00</td><td><button class="btn-icon" style="color:var(--color-danger)"><i class="ph ph-trash"></i></button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer" style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <span>Subtotal: <strong class="td-mono">R$ 350,00</strong></span>
+          </div>
+        </div>
+
+        <!-- Histórico / Timeline -->
+        <div class="card">
+          <div class="card-header"><i class="ph ph-clock-counter-clockwise"></i> Histórico</div>
+          <div class="card-body">
+            <div class="timeline">
+              <div class="timeline__item">
+                <div class="timeline__dot"></div>
+                <div class="timeline__date">23/05/2026 09:45</div>
+                <div class="timeline__text"><strong>OS criada</strong> — Recebida pelo balcão. Responsável: Ana Recepção.</div>
+              </div>
+              <div class="timeline__item">
+                <div class="timeline__dot"></div>
+                <div class="timeline__date">23/05/2026 10:30</div>
+                <div class="timeline__text"><strong>Em andamento</strong> — Técnico João Silva assumiu o serviço.</div>
+              </div>
+              <div class="timeline__item">
+                <div class="timeline__dot" style="background: var(--color-warning); box-shadow: 0 0 0 2px var(--color-warning)"></div>
+                <div class="timeline__date">23/05/2026 14:00</div>
+                <div class="timeline__text"><strong>Aguardando peça</strong> — Tampa traseira solicitada ao fornecedor. Prazo: 3 dias.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna Lateral -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Resumo Financeiro -->
+        <div class="card">
+          <div class="card-header"><i class="ph ph-currency-dollar"></i> Resumo</div>
+          <div class="card-body">
+            <div class="flex-between" style="margin-bottom: .75rem;">
+              <span class="text-muted text-small">Status</span>
+              <span class="badge badge--warning">Andamento</span>
+            </div>
+            <div class="divider" style="margin: .75rem 0"></div>
+            <div class="flex-between" style="margin-bottom: .5rem;">
+              <span class="text-muted text-small">Subtotal serviços</span>
+              <span class="td-mono text-small">R$ 350,00</span>
+            </div>
+            <div class="flex-between" style="margin-bottom: .5rem;">
+              <span class="text-muted text-small">Desconto</span>
+              <span class="td-mono text-small">— R$ 0,00</span>
+            </div>
+            <div class="divider" style="margin: .75rem 0"></div>
+            <div class="flex-between">
+              <span class="fw-600">Total</span>
+              <span class="td-mono fw-600" style="font-size: 1.125rem; color: var(--gray-900)">R$ 350,00</span>
+            </div>
+            <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: .5rem;">
+              <button class="btn btn-primary" style="width: 100%"><i class="ph ph-check"></i> Concluir OS</button>
+              <button class="btn btn-secondary" style="width: 100%"><i class="ph ph-receipt"></i> Gerar Orçamento</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="card">
+          <div class="card-header"><i class="ph ph-note"></i> Observações</div>
+          <div class="card-body">
+            <textarea class="form-control" rows="4" style="resize: none; width: 100%">Cliente informou que o notebook caiu da mesa. Tela apresenta leve arranhão na lateral mas está funcional.</textarea>
+            <button class="btn btn-secondary btn-sm" style="margin-top: .75rem; width: 100%"><i class="ph ph-floppy-disk"></i> Salvar obs.</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     PAGE 7: FORMULÁRIOS
+     =================================================================== -->
+<section id="page-forms" class="page-section">
+  <div style="padding: 2rem; max-width: 900px; margin: 0 auto;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-header__title"><i class="ph ph-plus-circle" style="color: var(--brand-yellow)"></i> Nova Ordem de Serviço</h1>
+        <p class="page-header__subtitle">Preencha os dados para registrar uma nova OS.</p>
+      </div>
+      <div class="page-header__actions">
+        <button class="btn btn-secondary">Cancelar</button>
+        <button class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar OS</button>
+      </div>
+    </div>
+
+    <!-- Form Card 1 -->
+    <div class="card mb-6" style="margin-bottom: 1.5rem;">
+      <div class="card-header"><i class="ph ph-user"></i> Dados do Cliente</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Cliente *</label>
+          <div class="input-group">
+            <i class="ph ph-magnifying-glass input-group__icon"></i>
+            <input type="search" class="form-control" placeholder="Digite o nome ou CPF do cliente...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Telefone</label>
+            <input type="tel" class="form-control" placeholder="(11) 99999-0000" value="(11) 99999-1234">
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control" placeholder="cliente@email.com">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Card 2 -->
+    <div class="card mb-6" style="margin-bottom: 1.5rem;">
+      <div class="card-header"><i class="ph ph-laptop"></i> Equipamento</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tipo de Equipamento *</label>
+            <select class="form-control">
+              <option>Notebook</option>
+              <option>Smartphone</option>
+              <option>Tablet</option>
+              <option>Impressora</option>
+              <option>PC Desktop</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Marca / Modelo *</label>
+            <input type="text" class="form-control" placeholder="Ex: Dell Inspiron 15" value="Dell Inspiron 15">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Número de Série</label>
+            <input type="text" class="form-control" placeholder="Opcional">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cor</label>
+            <input type="text" class="form-control" placeholder="Ex: Prata">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Defeito Relatado *</label>
+          <textarea class="form-control" rows="3" placeholder="Descreva o defeito relatado pelo cliente...">Não liga após queda acidental da mesa.</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Acessórios Recebidos</label>
+          <input type="text" class="form-control" placeholder="Ex: Carregador, mouse...">
+          <div class="form-hint">Liste os acessórios entregues junto com o equipamento.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Card 3 -->
+    <div class="card mb-6" style="margin-bottom: 1.5rem;">
+      <div class="card-header"><i class="ph ph-wrench"></i> Técnico e Prazo</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Técnico Responsável</label>
+            <select class="form-control">
+              <option>Selecione...</option>
+              <option selected>João Silva</option>
+              <option>Pedro Alves</option>
+              <option>Maria Técnica</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prazo Estimado</label>
+            <input type="date" class="form-control" value="2026-05-26">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Observações Internas</label>
+          <textarea class="form-control" rows="3" placeholder="Notas internas, visíveis apenas para a equipe..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form validation example -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div class="card-header"><i class="ph ph-info"></i> Exemplo com Validação</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Campo com Erro</label>
+          <input type="text" class="form-control" style="border-color: var(--color-danger); box-shadow: 0 0 0 .15rem rgba(239,68,68,.2);" value="">
+          <div class="form-error"><i class="ph ph-warning-circle"></i> Este campo é obrigatório.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Campo em Foco</label>
+          <input type="text" class="form-control" style="border-color: rgba(255,211,44,.6); box-shadow: 0 0 0 .15rem rgba(255,211,44,.25);" value="Exemplo de campo ativo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Campo Desabilitado</label>
+          <input type="text" class="form-control" style="background: var(--gray-100); color: var(--gray-400); cursor: not-allowed;" disabled value="Campo não editável">
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: .75rem; padding-bottom: 2rem;">
+      <button class="btn btn-secondary"><i class="ph ph-x"></i> Cancelar</button>
+      <button class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar Ordem de Serviço</button>
+    </div>
+  </div>
+</section>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.template-nav__tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

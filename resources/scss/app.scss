@@ -1,0 +1,34 @@
+/* =====================================================================
+   ERP Multimáquinas — Frontend principal
+   Stack: Bootstrap 5.3.8 + Sass + Vite 7
+   ===================================================================== */
+
+/* 1. Variáveis e overrides DEVEM vir ANTES do import do Bootstrap. */
+@import 'variables';
+
+/* 2. Bootstrap completo (granular — desliga módulos não usados). */
+@import 'bootstrap';
+
+/* 3. Bootstrap Icons — importado via app.js (Vite resolve node_modules lá). */
+/* 4. Phosphor Icons  — importado via app.js (idem). */
+
+/* 5. Camadas custom — ordem importa. */
+@import 'tokens';        // tokens semânticos derivados das variáveis
+@import 'base';          // resets, tipografia, body
+@import 'layout';        // sidebar, topbar, main, footer
+@import 'components';    // cards, badges, tabelas, modais
+@import 'forms';         // inputs, selects, files, validações
+@import 'utilities';     // helpers .text-mono, .truncate, etc.
+
+/* 6. Estilos específicos de plugins (carregados sob demanda no JS,
+      mas o CSS fica num único bundle pra simplificar). */
+@import 'plugins/datatables';
+@import 'plugins/quill';
+@import 'plugins/flatpickr';
+@import 'plugins/choices';
+@import 'plugins/filepond';
+@import 'plugins/glightbox';
+@import 'plugins/fullcalendar';
+
+/* 7. Print — estilos de impressão (relatório de faturamento, OS, etc.). */
+@import 'print';

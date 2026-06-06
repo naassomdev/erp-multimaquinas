@@ -1,0 +1,217 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]: 
+      - generic [ref=e7]: Multimaquinas
+    - navigation [ref=e8]:
+      - link " Dashboard" [ref=e9] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e10]: 
+        - generic [ref=e11]: Dashboard
+      - generic [ref=e12]: Operacao
+      - link " Clientes" [ref=e13] [cursor=pointer]:
+        - /url: /clientes
+        - generic [ref=e14]: 
+        - generic [ref=e15]: Clientes
+      - link " Ordens de Servico" [ref=e16] [cursor=pointer]:
+        - /url: /os
+        - generic [ref=e17]: 
+        - generic [ref=e18]: Ordens de Servico
+      - generic [ref=e19]: Bancada
+      - link " Painel Tecnico" [ref=e20] [cursor=pointer]:
+        - /url: /tecnico
+        - generic [ref=e21]: 
+        - generic [ref=e22]: Painel Tecnico
+      - link " Orcamentos" [ref=e23] [cursor=pointer]:
+        - /url: /orcamento
+        - generic [ref=e24]: 
+        - generic [ref=e25]: Orcamentos
+      - link " Compras" [ref=e26] [cursor=pointer]:
+        - /url: /compras/necessidades
+        - generic [ref=e27]: 
+        - generic [ref=e28]: Compras
+      - link " Garantias Fab." [ref=e29] [cursor=pointer]:
+        - /url: /relatorios/garantias-fabricante
+        - generic [ref=e30]: 
+        - generic [ref=e31]: Garantias Fab.
+      - generic [ref=e32]: Administrativo
+      - link " Estoque" [ref=e33] [cursor=pointer]:
+        - /url: /estoque
+        - generic [ref=e34]: 
+        - generic [ref=e35]: Estoque
+      - link " Financeiro" [ref=e36] [cursor=pointer]:
+        - /url: /financeiro
+        - generic [ref=e37]: 
+        - generic [ref=e38]: Financeiro
+      - link " NFS-e" [ref=e39] [cursor=pointer]:
+        - /url: /nfse
+        - generic [ref=e40]: 
+        - generic [ref=e41]: NFS-e
+      - link " Tabela M.O." [ref=e42] [cursor=pointer]:
+        - /url: /admin/mao-de-obra
+        - generic [ref=e43]: 
+        - generic [ref=e44]: Tabela M.O.
+      - link " Dados da Empresa" [ref=e45] [cursor=pointer]:
+        - /url: /admin/empresa
+        - generic [ref=e46]: 
+        - generic [ref=e47]: Dados da Empresa
+      - link " Config. E-mail" [ref=e48] [cursor=pointer]:
+        - /url: /admin/email
+        - generic [ref=e49]: 
+        - generic [ref=e50]: Config. E-mail
+      - link " Usuários" [ref=e51] [cursor=pointer]:
+        - /url: /admin/usuarios
+        - generic [ref=e52]: 
+        - generic [ref=e53]: Usuários
+      - link " Clientes Duplicados" [ref=e54] [cursor=pointer]:
+        - /url: /admin/clientes/duplicados
+        - generic [ref=e55]: 
+        - generic [ref=e56]: Clientes Duplicados
+      - generic [ref=e57]: PDV
+      - link " PDV" [ref=e58] [cursor=pointer]:
+        - /url: /pdv
+        - generic [ref=e59]: 
+        - generic [ref=e60]: PDV
+      - link " Vendas PDV" [ref=e61] [cursor=pointer]:
+        - /url: /pdv/vendas
+        - generic [ref=e62]: 
+        - generic [ref=e63]: Vendas PDV
+      - generic [ref=e64]: Atencao
+      - link " Alertas Retirada 10" [ref=e65] [cursor=pointer]:
+        - /url: /alertas/retirada
+        - generic [ref=e66]: 
+        - generic [ref=e67]: Alertas Retirada
+        - generic [ref=e68]: "10"
+    - link " Sair" [ref=e70] [cursor=pointer]:
+      - /url: /logout
+      - generic [ref=e71]: 
+      - generic [ref=e72]: Sair
+  - generic [ref=e73]:
+    - banner [ref=e74]:
+      - generic [ref=e75]:
+        - button "Alternar menu lateral" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: 
+        - navigation "Breadcrumb" [ref=e78]:
+          - generic [ref=e79]: Sistema
+          - generic [ref=e81]: 
+          - generic [ref=e82]: Nova Ordem de Serviço
+      - generic [ref=e83]:
+        - text: 
+        - button "Notificações (10 novas)" [ref=e85] [cursor=pointer]:
+          - generic [ref=e86]: 
+          - generic: "10"
+        - text:  
+        - button "Alternar tema" [ref=e87] [cursor=pointer]:
+          - text: 
+          - generic [ref=e88]: 
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - strong [ref=e91]: Carlos
+            - text: Admin
+          - generic [ref=e92]: C
+    - main [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - heading "Nova Ordem de Servico" [level=1] [ref=e97]
+            - paragraph [ref=e98]: Preencha os dados do cliente e os equipamentos
+          - link " Voltar" [ref=e100] [cursor=pointer]:
+            - /url: /os
+            - generic [ref=e101]: 
+            - text: Voltar
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e105]: 
+              - text: Cliente
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - generic [ref=e108]: 
+                - generic [ref=e109]: Digite ao menos 2 letras no nome, ou 4 digitos no telefone / CPF — o sistema busca automaticamente se o cliente ja existe.
+              - generic [ref=e110]:
+                - generic [ref=e111]:
+                  - generic [ref=e112]: Nome do cliente *
+                  - textbox [ref=e113]
+                - generic [ref=e114]:
+                  - generic [ref=e115]: Telefone
+                  - textbox [ref=e116]
+                - generic [ref=e117]:
+                  - generic [ref=e118]: CPF / CNPJ
+                  - textbox [ref=e119]
+              - separator [ref=e120]
+              - paragraph [ref=e121]:
+                - generic [ref=e122]: 
+                - strong [ref=e123]: Contato responsável
+                - text: (opcional) — preencha quando o equipamento for trazido por um funcionário ou contato diferente do titular da conta.
+              - generic [ref=e124]:
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Nome do contato
+                  - 'textbox "Ex.: João da Silva (recepcionista)" [ref=e127]'
+                - generic [ref=e128]:
+                  - generic [ref=e129]: WhatsApp / telefone do contato
+                  - textbox "(DDD) 9xxxx-xxxx" [ref=e130]
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]: 
+              - generic [ref=e134]: Equipamentos
+              - button " Adicionar equipamento" [ref=e135] [cursor=pointer]:
+                - generic [ref=e136]: 
+                - text: Adicionar equipamento
+            - generic [ref=e138]:
+              - button "" [ref=e139] [cursor=pointer]:
+                - generic [ref=e140]: 
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - generic [ref=e143]: Equipamento / Aparelho *
+                  - 'textbox "Ex.: Lavadora Brastemp 11kg" [ref=e144]'
+                - generic [ref=e145]:
+                  - generic [ref=e146]: Fabricante / Marca
+                  - 'combobox "Ex.: MAKITA, BOSCH, DEWALT" [ref=e147]'
+                - generic [ref=e148]:
+                  - generic [ref=e149]: Modelo
+                  - 'textbox "Ex.: HR5210.C, GWS 22-230" [ref=e150]'
+                - generic [ref=e151]:
+                  - generic [ref=e152]: Defeito relatado
+                  - textbox "O que esta acontecendo?" [ref=e153]
+                - generic [ref=e154]:
+                  - generic [ref=e155]: No Serie
+                  - textbox [ref=e156]
+                - generic [ref=e157]:
+                  - generic [ref=e158]: Voltagem
+                  - combobox [ref=e159]:
+                    - option "Selecione..." [selected]
+                    - option "110V / 127V"
+                    - option "220V"
+                    - option "Bivolt"
+                    - option "Bateria"
+                    - option "Monofásico"
+                    - option "Trifásico"
+                - generic [ref=e160]:
+                  - generic [ref=e161]: Caixa / Local
+                  - textbox "No da prateleira ou caixa" [ref=e162]
+                - generic [ref=e164]:
+                  - checkbox "Em garantia?" [ref=e165]
+                  - generic [ref=e166]: Em garantia?
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - generic [ref=e169]: 
+              - text: Fotos da recepcao
+            - generic [ref=e170]:
+              - paragraph [ref=e171]: Tire fotos do estado em que o equipamento chegou (riscos, amassados, acessorios). Vale para todos os equipamentos desta OS.
+              - generic [ref=e172] [cursor=pointer]:
+                - generic [ref=e173]:
+                  - generic [ref=e175]: 
+                  - generic [ref=e176]:
+                    - strong [ref=e177]: Tirar foto / enviar imagem
+                    - generic [ref=e178]: Toque para abrir a camera ou escolher do celular
+                - button " Tirar foto / enviar imagem Toque para abrir a camera ou escolher do celular" [ref=e179]
+                - paragraph [ref=e180]: Nenhuma foto adicionada ainda.
+          - generic [ref=e181]:
+            - link "Cancelar" [ref=e182] [cursor=pointer]:
+              - /url: /os
+            - button " Emitir Ordem de Servico" [ref=e183] [cursor=pointer]:
+              - generic [ref=e184]: 
+              - text: Emitir Ordem de Servico
+    - contentinfo [ref=e185]:
+      - generic [ref=e186]: © 2026 Multimaquinas — ERP
+      - generic [ref=e187]: v2.0

@@ -1,0 +1,574 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]: 
+      - generic [ref=e7]: Multimaquinas
+    - navigation [ref=e8]:
+      - link " Dashboard" [ref=e9] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e10]: 
+        - generic [ref=e11]: Dashboard
+      - generic [ref=e12]: Operacao
+      - link " Clientes" [ref=e13] [cursor=pointer]:
+        - /url: /clientes
+        - generic [ref=e14]: 
+        - generic [ref=e15]: Clientes
+      - link " Ordens de Servico" [ref=e16] [cursor=pointer]:
+        - /url: /os
+        - generic [ref=e17]: 
+        - generic [ref=e18]: Ordens de Servico
+      - generic [ref=e19]: Bancada
+      - link " Painel Tecnico" [ref=e20] [cursor=pointer]:
+        - /url: /tecnico
+        - generic [ref=e21]: 
+        - generic [ref=e22]: Painel Tecnico
+      - link " Orcamentos" [ref=e23] [cursor=pointer]:
+        - /url: /orcamento
+        - generic [ref=e24]: 
+        - generic [ref=e25]: Orcamentos
+      - link " Compras" [ref=e26] [cursor=pointer]:
+        - /url: /compras/necessidades
+        - generic [ref=e27]: 
+        - generic [ref=e28]: Compras
+      - link " Garantias Fab." [ref=e29] [cursor=pointer]:
+        - /url: /relatorios/garantias-fabricante
+        - generic [ref=e30]: 
+        - generic [ref=e31]: Garantias Fab.
+      - generic [ref=e32]: Administrativo
+      - link " Estoque" [ref=e33] [cursor=pointer]:
+        - /url: /estoque
+        - generic [ref=e34]: 
+        - generic [ref=e35]: Estoque
+      - link " Financeiro" [ref=e36] [cursor=pointer]:
+        - /url: /financeiro
+        - generic [ref=e37]: 
+        - generic [ref=e38]: Financeiro
+      - link " NFS-e" [ref=e39] [cursor=pointer]:
+        - /url: /nfse
+        - generic [ref=e40]: 
+        - generic [ref=e41]: NFS-e
+      - link " Tabela M.O." [ref=e42] [cursor=pointer]:
+        - /url: /admin/mao-de-obra
+        - generic [ref=e43]: 
+        - generic [ref=e44]: Tabela M.O.
+      - link " Dados da Empresa" [ref=e45] [cursor=pointer]:
+        - /url: /admin/empresa
+        - generic [ref=e46]: 
+        - generic [ref=e47]: Dados da Empresa
+      - link " Config. E-mail" [ref=e48] [cursor=pointer]:
+        - /url: /admin/email
+        - generic [ref=e49]: 
+        - generic [ref=e50]: Config. E-mail
+      - link " Usuários" [ref=e51] [cursor=pointer]:
+        - /url: /admin/usuarios
+        - generic [ref=e52]: 
+        - generic [ref=e53]: Usuários
+      - link " Clientes Duplicados" [ref=e54] [cursor=pointer]:
+        - /url: /admin/clientes/duplicados
+        - generic [ref=e55]: 
+        - generic [ref=e56]: Clientes Duplicados
+      - generic [ref=e57]: PDV
+      - link " PDV" [ref=e58] [cursor=pointer]:
+        - /url: /pdv
+        - generic [ref=e59]: 
+        - generic [ref=e60]: PDV
+      - link " Vendas PDV" [ref=e61] [cursor=pointer]:
+        - /url: /pdv/vendas
+        - generic [ref=e62]: 
+        - generic [ref=e63]: Vendas PDV
+      - generic [ref=e64]: Atencao
+      - link " Alertas Retirada 10" [ref=e65] [cursor=pointer]:
+        - /url: /alertas/retirada
+        - generic [ref=e66]: 
+        - generic [ref=e67]: Alertas Retirada
+        - generic [ref=e68]: "10"
+    - link " Sair" [ref=e70] [cursor=pointer]:
+      - /url: /logout
+      - generic [ref=e71]: 
+      - generic [ref=e72]: Sair
+  - generic [ref=e73]:
+    - banner [ref=e74]:
+      - generic [ref=e75]:
+        - button "Alternar menu lateral" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: 
+        - navigation "Breadcrumb" [ref=e78]:
+          - generic [ref=e79]: Sistema
+          - generic [ref=e81]: 
+          - generic [ref=e82]: Dashboard — ERP Multimáquinas
+      - generic [ref=e83]:
+        - text: 
+        - button "Notificações (10 novas)" [expanded] [active] [ref=e85] [cursor=pointer]:
+          - generic [ref=e86]: 
+          - generic: "10"
+        - generic [ref=e261]:
+          - generic [ref=e262]:
+            - heading "Notificações" [level=5] [ref=e263]
+            - button "Fechar gaveta" [ref=e264] [cursor=pointer]:
+              - generic [ref=e265]: 
+          - button " Marcar todas como lidas" [ref=e267] [cursor=pointer]:
+            - generic [ref=e268]: 
+            - text: Marcar todas como lidas
+          - list [ref=e269]:
+            - listitem [ref=e270]:
+              - generic [ref=e271]:
+                - generic [ref=e273]: 
+                - generic [ref=e274]:
+                  - generic [ref=e275]: "Diagnóstico concluído na OS #20260601-016 — MOTOBOMBA 1/4 CV. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Igor de Souza Pereira" [ref=e276]
+                  - generic [ref=e277]:
+                    - generic [ref=e278]:
+                      - generic [ref=e279]: 
+                      - text: OS 20260601-016
+                    - generic [ref=e280]: ·
+                    - generic [ref=e281]:
+                      - generic [ref=e282]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e283]: ·
+                    - generic [ref=e284]: Motor
+                    - generic [ref=e285]: ·
+                    - generic [ref=e286]:
+                      - generic [ref=e287]: 
+                      - text: 4h atrás
+              - generic [ref=e288]:
+                - button " Lida" [ref=e289] [cursor=pointer]:
+                  - generic [ref=e290]: 
+                  - text: Lida
+                - link " Abrir" [ref=e291] [cursor=pointer]:
+                  - /url: /orcamento/20260601-016#equip-0
+                  - generic [ref=e292]: 
+                  - text: Abrir
+            - listitem [ref=e293]:
+              - generic [ref=e294]:
+                - generic [ref=e296]: 
+                - generic [ref=e297]:
+                  - generic [ref=e298]: "Diagnóstico concluído na OS #20260603-001 — LIXADEIRA DE PAREDE MENEGOTTI MLP 750 LED. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Elcio Jose de Assuncao" [ref=e299]
+                  - generic [ref=e300]:
+                    - generic [ref=e301]:
+                      - generic [ref=e302]: 
+                      - text: OS 20260603-001
+                    - generic [ref=e303]: ·
+                    - generic [ref=e304]:
+                      - generic [ref=e305]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e306]: ·
+                    - generic [ref=e307]: Equipamento
+                    - generic [ref=e308]: ·
+                    - generic [ref=e309]:
+                      - generic [ref=e310]: 
+                      - text: 6h atrás
+              - generic [ref=e311]:
+                - button " Lida" [ref=e312] [cursor=pointer]:
+                  - generic [ref=e313]: 
+                  - text: Lida
+                - link " Abrir" [ref=e314] [cursor=pointer]:
+                  - /url: /orcamento/20260603-001#equip-0
+                  - generic [ref=e315]: 
+                  - text: Abrir
+            - listitem [ref=e316]:
+              - generic [ref=e317]:
+                - generic [ref=e319]: 
+                - generic [ref=e320]:
+                  - generic [ref=e321]: "Diagnóstico concluído na OS #20260519-001 — MARTELETE DEWALT D25602-B2 TIPO 1. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Jaime" [ref=e322]
+                  - generic [ref=e323]:
+                    - generic [ref=e324]:
+                      - generic [ref=e325]: 
+                      - text: OS 20260519-001
+                    - generic [ref=e326]: ·
+                    - generic [ref=e327]:
+                      - generic [ref=e328]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e329]: ·
+                    - generic [ref=e330]: Equipamento
+                    - generic [ref=e331]: ·
+                    - generic [ref=e332]:
+                      - generic [ref=e333]: 
+                      - text: 9h atrás
+              - generic [ref=e334]:
+                - button " Lida" [ref=e335] [cursor=pointer]:
+                  - generic [ref=e336]: 
+                  - text: Lida
+                - link " Abrir" [ref=e337] [cursor=pointer]:
+                  - /url: /orcamento/20260519-001#equip-0
+                  - generic [ref=e338]: 
+                  - text: Abrir
+            - listitem [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e342]: 
+                - generic [ref=e343]:
+                  - generic [ref=e344]: "Diagnóstico concluído na OS #20260603-009 — ESMERILLHADEIRA DEWALT DWE4120 4POL. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Lucas" [ref=e345]
+                  - generic [ref=e346]:
+                    - generic [ref=e347]:
+                      - generic [ref=e348]: 
+                      - text: OS 20260603-009
+                    - generic [ref=e349]: ·
+                    - generic [ref=e350]:
+                      - generic [ref=e351]: 
+                      - text: "Equipamento #3"
+                    - generic [ref=e352]: ·
+                    - generic [ref=e353]: Equipamento
+                    - generic [ref=e354]: ·
+                    - generic [ref=e355]:
+                      - generic [ref=e356]: 
+                      - text: 9h atrás
+              - generic [ref=e357]:
+                - button " Lida" [ref=e358] [cursor=pointer]:
+                  - generic [ref=e359]: 
+                  - text: Lida
+                - link " Abrir" [ref=e360] [cursor=pointer]:
+                  - /url: /orcamento/20260603-009#equip-2
+                  - generic [ref=e361]: 
+                  - text: Abrir
+            - listitem [ref=e362]:
+              - generic [ref=e363]:
+                - generic [ref=e365]: 
+                - generic [ref=e366]:
+                  - generic [ref=e367]: "Diagnóstico concluído na OS #20260603-009 — ESMERILHADEIRA DEWALT DWE4314 TIP4 5POL. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Lucas" [ref=e368]
+                  - generic [ref=e369]:
+                    - generic [ref=e370]:
+                      - generic [ref=e371]: 
+                      - text: OS 20260603-009
+                    - generic [ref=e372]: ·
+                    - generic [ref=e373]:
+                      - generic [ref=e374]: 
+                      - text: "Equipamento #2"
+                    - generic [ref=e375]: ·
+                    - generic [ref=e376]: Equipamento
+                    - generic [ref=e377]: ·
+                    - generic [ref=e378]:
+                      - generic [ref=e379]: 
+                      - text: 10h atrás
+              - generic [ref=e380]:
+                - button " Lida" [ref=e381] [cursor=pointer]:
+                  - generic [ref=e382]: 
+                  - text: Lida
+                - link " Abrir" [ref=e383] [cursor=pointer]:
+                  - /url: /orcamento/20260603-009#equip-1
+                  - generic [ref=e384]: 
+                  - text: Abrir
+            - listitem [ref=e385]:
+              - generic [ref=e386]:
+                - generic [ref=e388]: 
+                - generic [ref=e389]:
+                  - generic [ref=e390]: "Diagnóstico concluído na OS #20260603-009 — ESMERILHADEIRA DEWALT DWE4314 TIP4 5POL. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Lucas" [ref=e391]
+                  - generic [ref=e392]:
+                    - generic [ref=e393]:
+                      - generic [ref=e394]: 
+                      - text: OS 20260603-009
+                    - generic [ref=e395]: ·
+                    - generic [ref=e396]:
+                      - generic [ref=e397]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e398]: ·
+                    - generic [ref=e399]: Equipamento
+                    - generic [ref=e400]: ·
+                    - generic [ref=e401]:
+                      - generic [ref=e402]: 
+                      - text: 10h atrás
+              - generic [ref=e403]:
+                - button " Lida" [ref=e404] [cursor=pointer]:
+                  - generic [ref=e405]: 
+                  - text: Lida
+                - link " Abrir" [ref=e406] [cursor=pointer]:
+                  - /url: /orcamento/20260603-009#equip-0
+                  - generic [ref=e407]: 
+                  - text: Abrir
+            - listitem [ref=e408]:
+              - generic [ref=e409]:
+                - generic [ref=e411]: 
+                - generic [ref=e412]:
+                  - generic [ref=e413]: "Diagnóstico concluído na OS #20260603-005 — SERRA CIRCULA BOSCH 7 1/4. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Moisés Santos Ferreira" [ref=e414]
+                  - generic [ref=e415]:
+                    - generic [ref=e416]:
+                      - generic [ref=e417]: 
+                      - text: OS 20260603-005
+                    - generic [ref=e418]: ·
+                    - generic [ref=e419]:
+                      - generic [ref=e420]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e421]: ·
+                    - generic [ref=e422]: Equipamento
+                    - generic [ref=e423]: ·
+                    - generic [ref=e424]:
+                      - generic [ref=e425]: 
+                      - text: 10h atrás
+              - generic [ref=e426]:
+                - button " Lida" [ref=e427] [cursor=pointer]:
+                  - generic [ref=e428]: 
+                  - text: Lida
+                - link " Abrir" [ref=e429] [cursor=pointer]:
+                  - /url: /orcamento/20260603-005#equip-0
+                  - generic [ref=e430]: 
+                  - text: Abrir
+            - listitem [ref=e431]:
+              - generic [ref=e432]:
+                - generic [ref=e434]: 
+                - generic [ref=e435]:
+                  - generic [ref=e436]: "Diagnóstico concluído na OS #20260603-002 — MARTELETE. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Marmoraria Estoril Atibaia" [ref=e437]
+                  - generic [ref=e438]:
+                    - generic [ref=e439]:
+                      - generic [ref=e440]: 
+                      - text: OS 20260603-002
+                    - generic [ref=e441]: ·
+                    - generic [ref=e442]:
+                      - generic [ref=e443]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e444]: ·
+                    - generic [ref=e445]: Equipamento
+                    - generic [ref=e446]: ·
+                    - generic [ref=e447]:
+                      - generic [ref=e448]: 
+                      - text: 11h atrás
+              - generic [ref=e449]:
+                - button " Lida" [ref=e450] [cursor=pointer]:
+                  - generic [ref=e451]: 
+                  - text: Lida
+                - link " Abrir" [ref=e452] [cursor=pointer]:
+                  - /url: /orcamento/20260603-002#equip-0
+                  - generic [ref=e453]: 
+                  - text: Abrir
+            - listitem [ref=e454]:
+              - generic [ref=e455]:
+                - generic [ref=e457]: 
+                - generic [ref=e458]:
+                  - generic [ref=e459]: "Diagnóstico concluído na OS #20260603-012 — PARAFUSADEIRA DEWALT DCD 7781. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Gustavo St2" [ref=e460]
+                  - generic [ref=e461]:
+                    - generic [ref=e462]:
+                      - generic [ref=e463]: 
+                      - text: OS 20260603-012
+                    - generic [ref=e464]: ·
+                    - generic [ref=e465]:
+                      - generic [ref=e466]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e467]: ·
+                    - generic [ref=e468]: Equipamento
+                    - generic [ref=e469]: ·
+                    - generic [ref=e470]:
+                      - generic [ref=e471]: 
+                      - text: 11h atrás
+              - generic [ref=e472]:
+                - button " Lida" [ref=e473] [cursor=pointer]:
+                  - generic [ref=e474]: 
+                  - text: Lida
+                - link " Abrir" [ref=e475] [cursor=pointer]:
+                  - /url: /orcamento/20260603-012#equip-0
+                  - generic [ref=e476]: 
+                  - text: Abrir
+            - listitem [ref=e477]:
+              - generic [ref=e478]:
+                - generic [ref=e480]: 
+                - generic [ref=e481]:
+                  - generic [ref=e482]: "Diagnóstico concluído na OS #20260519-003 — PARAFUSADEIRA VONDER CCV108. Aguardando aprovação ou cancelamento do orçamento."
+                  - generic "Alexandre" [ref=e483]
+                  - generic [ref=e484]:
+                    - generic [ref=e485]:
+                      - generic [ref=e486]: 
+                      - text: OS 20260519-003
+                    - generic [ref=e487]: ·
+                    - generic [ref=e488]:
+                      - generic [ref=e489]: 
+                      - text: "Equipamento #1"
+                    - generic [ref=e490]: ·
+                    - generic [ref=e491]: Equipamento
+                    - generic [ref=e492]: ·
+                    - generic [ref=e493]:
+                      - generic [ref=e494]: 
+                      - text: 03/06/2026
+              - generic [ref=e495]:
+                - button " Lida" [ref=e496] [cursor=pointer]:
+                  - generic [ref=e497]: 
+                  - text: Lida
+                - link " Abrir" [ref=e498] [cursor=pointer]:
+                  - /url: /orcamento/20260519-003#equip-0
+                  - generic [ref=e499]: 
+                  - text: Abrir
+        - button "Alternar tema" [ref=e87] [cursor=pointer]:
+          - text: 
+          - generic [ref=e88]: 
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - strong [ref=e91]: Carlos
+            - text: Admin
+          - generic [ref=e92]: C
+    - main [ref=e93]:
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - heading "Visao Geral" [level=1] [ref=e97]
+            - paragraph [ref=e98]:
+              - text: Ola,
+              - strong [ref=e99]: Carlos
+              - text: — resumo das atividades e metricas do sistema.
+          - generic [ref=e100]:
+            - link " Novo Cliente" [ref=e101] [cursor=pointer]:
+              - /url: /clientes/novo
+              - generic [ref=e102]: 
+              - text: Novo Cliente
+            - link " Nova OS" [ref=e103] [cursor=pointer]:
+              - /url: /os/nova
+              - generic [ref=e104]: 
+              - text: Nova OS
+        - generic [ref=e105]:
+          - link "OS Abertas  96 Ordens em andamento" [ref=e107] [cursor=pointer]:
+            - /url: /os
+            - generic [ref=e108]:
+              - generic [ref=e109]: OS Abertas
+              - generic [ref=e111]: 
+            - generic [ref=e112]: "96"
+            - generic [ref=e113]: Ordens em andamento
+          - link "OS Hoje  15 Entradas do dia" [ref=e115] [cursor=pointer]:
+            - /url: /os
+            - generic [ref=e116]:
+              - generic [ref=e117]: OS Hoje
+              - generic [ref=e119]: 
+            - generic [ref=e120]: "15"
+            - generic [ref=e121]: Entradas do dia
+          - link "Retiradas Hoje  0 Aparelhos entregues" [ref=e123] [cursor=pointer]:
+            - /url: /os
+            - generic [ref=e124]:
+              - generic [ref=e125]: Retiradas Hoje
+              - generic [ref=e127]: 
+            - generic [ref=e128]: "0"
+            - generic [ref=e129]: Aparelhos entregues
+          - link "Receita Hoje  R$ 0,00 Valor recebido" [ref=e131] [cursor=pointer]:
+            - /url: /financeiro/receber
+            - generic [ref=e132]:
+              - generic [ref=e133]: Receita Hoje
+              - generic [ref=e135]: 
+            - generic [ref=e136]: R$ 0,00
+            - generic [ref=e137]: Valor recebido
+          - link "Receita do Mes  R$ 3.814,00 Acumulado no periodo" [ref=e139] [cursor=pointer]:
+            - /url: /financeiro/receber
+            - generic [ref=e140]:
+              - generic [ref=e141]: Receita do Mes
+              - generic [ref=e143]: 
+            - generic [ref=e144]: R$ 3.814,00
+            - generic [ref=e145]: Acumulado no periodo
+          - link "A Receber  R$ 545,00 Faturas em aberto" [ref=e147] [cursor=pointer]:
+            - /url: /financeiro/receber
+            - generic [ref=e148]:
+              - generic [ref=e149]: A Receber
+              - generic [ref=e151]: 
+            - generic [ref=e152]: R$ 545,00
+            - generic [ref=e153]: Faturas em aberto
+          - link "Orcamentos Pendentes  33 Aguardando aprovacao" [ref=e155] [cursor=pointer]:
+            - /url: /orcamento
+            - generic [ref=e156]:
+              - generic [ref=e157]: Orcamentos Pendentes
+              - generic [ref=e159]: 
+            - generic [ref=e160]: "33"
+            - generic [ref=e161]: Aguardando aprovacao
+          - link "Clientes Ativos  2.045 Cadastrados no sistema" [ref=e163] [cursor=pointer]:
+            - /url: /clientes
+            - generic [ref=e164]:
+              - generic [ref=e165]: Clientes Ativos
+              - generic [ref=e167]: 
+            - generic [ref=e168]: "2.045"
+            - generic [ref=e169]: Cadastrados no sistema
+          - link "Pecas sob Encomenda  47 Requer atencao" [ref=e171] [cursor=pointer]:
+            - /url: /estoque/importar
+            - generic [ref=e172]:
+              - generic [ref=e173]: Pecas sob Encomenda
+              - generic [ref=e175]: 
+            - generic [ref=e176]: "47"
+            - generic [ref=e177]: Requer atencao
+        - generic [ref=e178]:
+          - generic [ref=e179]:
+            - generic [ref=e180]: 
+            - generic [ref=e181]: Ultimas Ordens de Servico
+            - link "Ver todas " [ref=e182] [cursor=pointer]:
+              - /url: /os
+              - text: Ver todas
+              - generic [ref=e183]: 
+          - text:     
+          - table [ref=e185]:
+            - rowgroup [ref=e186]:
+              - row "No OS Cliente Equipamento Status Data Valor Acoes" [ref=e187]:
+                - columnheader "No OS" [ref=e188]
+                - columnheader "Cliente" [ref=e189]
+                - columnheader "Equipamento" [ref=e190]
+                - columnheader "Status" [ref=e191]
+                - columnheader "Data" [ref=e192]
+                - columnheader "Valor" [ref=e193]
+                - columnheader "Acoes" [ref=e194]
+            - rowgroup [ref=e195]:
+              - row "20260605-015 VITOR FURADEIRA ABERTA 05/06/2026 R$ 0,00 " [ref=e196] [cursor=pointer]:
+                - cell "20260605-015" [ref=e197]:
+                  - link "20260605-015" [ref=e198]:
+                    - /url: /os/20260605-015
+                - cell "VITOR" [ref=e199]
+                - cell "FURADEIRA" [ref=e200]
+                - cell "ABERTA" [ref=e201]:
+                  - generic [ref=e202]: ABERTA
+                - cell "05/06/2026" [ref=e203]
+                - cell "R$ 0,00" [ref=e204]
+                - cell "" [ref=e205]:
+                  - link "" [ref=e206]:
+                    - /url: /os/20260605-015
+                    - generic [ref=e207]: 
+              - row "20260605-014 DIEGO ANDRADE SOARES MARTELO ABERTA 05/06/2026 R$ 0,00 " [ref=e208] [cursor=pointer]:
+                - cell "20260605-014" [ref=e209]:
+                  - link "20260605-014" [ref=e210]:
+                    - /url: /os/20260605-014
+                - cell "DIEGO ANDRADE SOARES" [ref=e211]
+                - cell "MARTELO" [ref=e212]
+                - cell "ABERTA" [ref=e213]:
+                  - generic [ref=e214]: ABERTA
+                - cell "05/06/2026" [ref=e215]
+                - cell "R$ 0,00" [ref=e216]
+                - cell "" [ref=e217]:
+                  - link "" [ref=e218]:
+                    - /url: /os/20260605-014
+                    - generic [ref=e219]: 
+              - row "20260605-013 SERGIO MOTOBOMBA ABERTA 05/06/2026 R$ 0,00 " [ref=e220] [cursor=pointer]:
+                - cell "20260605-013" [ref=e221]:
+                  - link "20260605-013" [ref=e222]:
+                    - /url: /os/20260605-013
+                - cell "SERGIO" [ref=e223]
+                - cell "MOTOBOMBA" [ref=e224]
+                - cell "ABERTA" [ref=e225]:
+                  - generic [ref=e226]: ABERTA
+                - cell "05/06/2026" [ref=e227]
+                - cell "R$ 0,00" [ref=e228]
+                - cell "" [ref=e229]:
+                  - link "" [ref=e230]:
+                    - /url: /os/20260605-013
+                    - generic [ref=e231]: 
+              - row "20260605-012 LOURIVAL MARTELETE ABERTA 05/06/2026 R$ 0,00 " [ref=e232] [cursor=pointer]:
+                - cell "20260605-012" [ref=e233]:
+                  - link "20260605-012" [ref=e234]:
+                    - /url: /os/20260605-012
+                - cell "LOURIVAL" [ref=e235]
+                - cell "MARTELETE" [ref=e236]
+                - cell "ABERTA" [ref=e237]:
+                  - generic [ref=e238]: ABERTA
+                - cell "05/06/2026" [ref=e239]
+                - cell "R$ 0,00" [ref=e240]
+                - cell "" [ref=e241]:
+                  - link "" [ref=e242]:
+                    - /url: /os/20260605-012
+                    - generic [ref=e243]: 
+              - row "20260605-011 RICARDO ROSARIO ESMERILHADEIRA ABERTA 05/06/2026 R$ 0,00 " [ref=e244] [cursor=pointer]:
+                - cell "20260605-011" [ref=e245]:
+                  - link "20260605-011" [ref=e246]:
+                    - /url: /os/20260605-011
+                - cell "RICARDO ROSARIO" [ref=e247]
+                - cell "ESMERILHADEIRA" [ref=e248]
+                - cell "ABERTA" [ref=e249]:
+                  - generic [ref=e250]: ABERTA
+                - cell "05/06/2026" [ref=e251]
+                - cell "R$ 0,00" [ref=e252]
+                - cell "" [ref=e253]:
+                  - link "" [ref=e254]:
+                    - /url: /os/20260605-011
+                    - generic [ref=e255]: 
+    - contentinfo [ref=e256]:
+      - generic [ref=e257]: © 2026 Multimaquinas — ERP
+      - generic [ref=e258]: v2.0

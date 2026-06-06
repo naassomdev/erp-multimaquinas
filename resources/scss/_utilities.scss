@@ -1,0 +1,32 @@
+// =====================================================================
+// Utilities — helpers sintéticos pra uso direto nas views
+// =====================================================================
+
+// Tipografia mono (números, IDs, códigos)
+.text-mono { font-family: $font-family-monospace; font-feature-settings: 'tnum'; }
+
+// Numbers tabulares (alinhamento de colunas em tabelas financeiras)
+.tnum { font-feature-settings: 'tnum'; }
+
+// Cursor pointer (linhas clicáveis)
+.cursor-pointer { cursor: pointer; }
+
+// No-print (esconder em impressão)
+@media print {
+    .no-print { display: none !important; }
+}
+
+// Brand text/bg helpers
+.text-brand { color: darken($brand-yellow, 25%) !important; }
+.bg-brand-soft { background: $brand-yellow-soft !important; }
+
+// Break-all (URLs, chaves NF-e, hashes)
+.break-all { word-break: break-all; overflow-wrap: anywhere; }
+
+// Aspect ratio — útil em thumbs de fotos
+.aspect-square { aspect-ratio: 1 / 1; }
+.aspect-video  { aspect-ratio: 16 / 9; }
+
+// Object cover — combina bem com aspect ratio
+.object-cover  { object-fit: cover; }
+.object-contain{ object-fit: contain; }

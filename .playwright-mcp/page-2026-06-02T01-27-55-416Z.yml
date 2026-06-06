@@ -1,0 +1,390 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e6]: 
+      - generic [ref=e7]: Multimaquinas
+    - navigation [ref=e8]:
+      - link " Dashboard" [ref=e9] [cursor=pointer]:
+        - /url: /dashboard
+        - generic [ref=e10]: 
+        - generic [ref=e11]: Dashboard
+      - generic [ref=e12]: Operacao
+      - link " Clientes" [ref=e13] [cursor=pointer]:
+        - /url: /clientes
+        - generic [ref=e14]: 
+        - generic [ref=e15]: Clientes
+      - link " Ordens de Servico" [ref=e16] [cursor=pointer]:
+        - /url: /os
+        - generic [ref=e17]: 
+        - generic [ref=e18]: Ordens de Servico
+      - generic [ref=e19]: Bancada
+      - link " Painel Tecnico" [ref=e20] [cursor=pointer]:
+        - /url: /tecnico
+        - generic [ref=e21]: 
+        - generic [ref=e22]: Painel Tecnico
+      - link " Orcamentos" [ref=e23] [cursor=pointer]:
+        - /url: /orcamento
+        - generic [ref=e24]: 
+        - generic [ref=e25]: Orcamentos
+      - link " Compras" [ref=e26] [cursor=pointer]:
+        - /url: /compras/necessidades
+        - generic [ref=e27]: 
+        - generic [ref=e28]: Compras
+      - link " Garantias Fab." [ref=e29] [cursor=pointer]:
+        - /url: /relatorios/garantias-fabricante
+        - generic [ref=e30]: 
+        - generic [ref=e31]: Garantias Fab.
+      - generic [ref=e32]: Administrativo
+      - link " Estoque" [ref=e33] [cursor=pointer]:
+        - /url: /estoque
+        - generic [ref=e34]: 
+        - generic [ref=e35]: Estoque
+      - link " Financeiro" [ref=e36] [cursor=pointer]:
+        - /url: /financeiro
+        - generic [ref=e37]: 
+        - generic [ref=e38]: Financeiro
+      - link " NFS-e" [ref=e39] [cursor=pointer]:
+        - /url: /nfse
+        - generic [ref=e40]: 
+        - generic [ref=e41]: NFS-e
+      - link " Tabela M.O." [ref=e42] [cursor=pointer]:
+        - /url: /admin/mao-de-obra
+        - generic [ref=e43]: 
+        - generic [ref=e44]: Tabela M.O.
+      - link " Dados da Empresa" [ref=e45] [cursor=pointer]:
+        - /url: /admin/empresa
+        - generic [ref=e46]: 
+        - generic [ref=e47]: Dados da Empresa
+      - link " Config. E-mail" [ref=e48] [cursor=pointer]:
+        - /url: /admin/email
+        - generic [ref=e49]: 
+        - generic [ref=e50]: Config. E-mail
+      - link " Usuários" [ref=e51] [cursor=pointer]:
+        - /url: /admin/usuarios
+        - generic [ref=e52]: 
+        - generic [ref=e53]: Usuários
+      - link " Clientes Duplicados" [ref=e54] [cursor=pointer]:
+        - /url: /admin/clientes/duplicados
+        - generic [ref=e55]: 
+        - generic [ref=e56]: Clientes Duplicados
+      - generic [ref=e57]: PDV
+      - link " PDV" [ref=e58] [cursor=pointer]:
+        - /url: /pdv
+        - generic [ref=e59]: 
+        - generic [ref=e60]: PDV
+      - link " Vendas PDV" [ref=e61] [cursor=pointer]:
+        - /url: /pdv/vendas
+        - generic [ref=e62]: 
+        - generic [ref=e63]: Vendas PDV
+      - generic [ref=e64]: Atencao
+      - link " Alertas Retirada 10" [ref=e65] [cursor=pointer]:
+        - /url: /alertas/retirada
+        - generic [ref=e66]: 
+        - generic [ref=e67]: Alertas Retirada
+        - generic [ref=e68]: "10"
+    - link " Sair" [ref=e70] [cursor=pointer]:
+      - /url: /logout
+      - generic [ref=e71]: 
+      - generic [ref=e72]: Sair
+  - generic [ref=e73]:
+    - banner [ref=e74]:
+      - generic [ref=e75]:
+        - button "Alternar menu lateral" [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: 
+        - navigation "Breadcrumb" [ref=e78]:
+          - generic [ref=e79]: Sistema
+          - generic [ref=e81]: 
+          - generic [ref=e82]: Orçamento — OS 20260507-001
+      - generic [ref=e83]:
+        - text: 
+        - button "Alternar tema" [ref=e84] [cursor=pointer]:
+          - text: 
+          - generic [ref=e85]: 
+        - generic [ref=e86]:
+          - generic [ref=e87]:
+            - strong [ref=e88]: Carlos
+            - text: Admin
+          - generic [ref=e89]: C
+    - main [ref=e90]:
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - heading "Orcamento - OS 20260507-001" [level=1] [ref=e94]:
+              - text: Orcamento - OS
+              - generic [ref=e95]: 20260507-001
+            - paragraph [ref=e96]:
+              - strong [ref=e97]: CARLOS NAASSOM
+              - text: "· 11914159556 · entrada: 2026-05-07 22:15:04 · OS:"
+              - generic [ref=e98]: retirado
+          - generic [ref=e99]:
+            - link " Voltar" [ref=e100] [cursor=pointer]:
+              - /url: /orcamento
+              - generic [ref=e101]: 
+              - text: Voltar
+            - link " Ver OS" [ref=e102] [cursor=pointer]:
+              - /url: /os/20260507-001
+              - generic [ref=e103]: 
+              - text: Ver OS
+            - link " Dashboard" [ref=e104] [cursor=pointer]:
+              - /url: /dashboard
+              - generic [ref=e105]: 
+              - text: Dashboard
+        - generic [ref=e106]:
+          - article [ref=e107]:
+            - generic [ref=e108]: Equipamentos
+            - strong [ref=e109]: "1"
+            - generic [ref=e110]: Navegue por equipamento sem abrir tudo de uma vez.
+          - article [ref=e111]:
+            - generic [ref=e112]: Orcamentos criados
+            - strong [ref=e113]: "1"
+            - generic [ref=e114]: 0 pago(s) nesta OS.
+          - article [ref=e115]:
+            - generic [ref=e116]: Aguardando cliente
+            - strong [ref=e117]: "0"
+            - generic [ref=e118]: 0 aprovado(s) para seguir.
+          - article [ref=e119]:
+            - generic [ref=e120]: Total orcado
+            - strong [ref=e121]: R$ 321,75
+            - generic [ref=e122]: Soma dos equipamentos com orcamento salvo.
+        - generic [ref=e123]:
+          - complementary [ref=e124]:
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e127]: Navegacao da OS
+                - heading "Equipamentos" [level=2] [ref=e128]
+              - generic [ref=e129]: "1"
+            - 'button "Equipamento #1 Mouse pad rascunho Defeito nao informado andamento 3 do tecnico R$ 321,75 3 item(ns)" [ref=e131] [cursor=pointer]':
+              - generic [ref=e132]:
+                - generic [ref=e133]:
+                  - generic [ref=e134]: "Equipamento #1"
+                  - generic [ref=e135]: Mouse pad
+                - generic [ref=e136]: rascunho
+              - paragraph [ref=e137]: Defeito nao informado
+              - generic [ref=e138]:
+                - generic [ref=e139]: andamento
+                - generic [ref=e140]: 3 do tecnico
+              - generic [ref=e141]:
+                - strong [ref=e142]: R$ 321,75
+                - generic [ref=e143]: 3 item(ns)
+          - article [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - generic [ref=e149]: Equipamento 1 de 1
+                  - heading "#1 Mouse pad" [level=5] [ref=e150]
+                  - paragraph [ref=e151]:
+                    - text: "Defeito:"
+                    - emphasis [ref=e152]: Nao informado
+                - generic [ref=e153]:
+                  - generic "3 item(s) registrado(s) pelo tecnico" [ref=e154]:
+                    - generic [ref=e155]: 
+                    - text: 3 do tecnico
+                  - generic [ref=e156]: andamento
+                  - generic [ref=e157]: rascunho
+              - generic [ref=e158]:
+                - generic [ref=e159]:
+                  - generic [ref=e160]: Voltagem
+                  - text: 220V
+                - generic [ref=e161]:
+                  - generic [ref=e162]: Caixa
+                  - text: "45"
+                - generic [ref=e163]:
+                  - generic [ref=e164]: Total atual
+                  - strong [ref=e165]: R$ 321,75
+              - generic [ref=e166]:
+                - button " Anterior" [disabled]:
+                  - generic: 
+                  - text: Anterior
+                - button "Proximo " [disabled]:
+                  - text: Proximo
+                  - generic: 
+            - generic [ref=e167]:
+              - generic [ref=e168]: 
+              - generic [ref=e169]:
+                - generic [ref=e170]: Orçamento em rascunho.
+                - generic [ref=e171]: Revise os itens e envie ao cliente pelo WhatsApp.
+            - generic [ref=e172]:
+              - generic [ref=e173]:
+                - generic [ref=e174]:
+                  - heading " Pecas e servicos (3)" [level=6] [ref=e175]:
+                    - generic [ref=e176]: 
+                    - text: Pecas e servicos (3)
+                  - generic [ref=e177]:
+                    - generic [ref=e178]:
+                      - text: Subtotal pecas
+                      - strong [ref=e179]: R$ 271,75
+                    - generic [ref=e180]:
+                      - text: Total geral
+                      - strong [ref=e181]: R$ 321,75
+                - table [ref=e183]:
+                  - rowgroup [ref=e184]:
+                    - row "Codigo Descricao Qtd Un Unitario Total" [ref=e185]:
+                      - columnheader "Codigo" [ref=e186]
+                      - columnheader "Descricao" [ref=e187]
+                      - columnheader "Qtd" [ref=e188]
+                      - columnheader "Un" [ref=e189]
+                      - columnheader "Unitario" [ref=e190]
+                      - columnheader "Total" [ref=e191]
+                      - columnheader [ref=e192]
+                  - rowgroup [ref=e193]:
+                    - row "528 ROLAMENTO HCH 6201 C/ FURO 1/2 DDU 2 RS 1 un 15.75 R$ 15,75 " [ref=e194]:
+                      - cell "528" [ref=e195]:
+                        - textbox [ref=e196]: "528"
+                      - cell "ROLAMENTO HCH 6201 C/ FURO 1/2 DDU 2 RS" [ref=e197]:
+                        - textbox [ref=e198]: ROLAMENTO HCH 6201 C/ FURO 1/2 DDU 2 RS
+                      - cell "1" [ref=e199]:
+                        - spinbutton [ref=e200]: "1"
+                      - cell "un" [ref=e201]:
+                        - textbox [ref=e202]: un
+                      - cell "15.75" [ref=e203]:
+                        - spinbutton [ref=e204]: "15.75"
+                      - cell "R$ 15,75" [ref=e205]
+                      - cell "" [ref=e206]:
+                        - button "" [ref=e207] [cursor=pointer]:
+                          - generic [ref=e208]: 
+                    - row "IND.RECON.DIV INDUZIDO RECONDICIONADO 1 un 160 R$ 160,00 " [ref=e209]:
+                      - cell "IND.RECON.DIV" [ref=e210]:
+                        - textbox [ref=e211]: IND.RECON.DIV
+                      - cell "INDUZIDO RECONDICIONADO" [ref=e212]:
+                        - textbox [ref=e213]: INDUZIDO RECONDICIONADO
+                      - cell "1" [ref=e214]:
+                        - spinbutton [ref=e215]: "1"
+                      - cell "un" [ref=e216]:
+                        - textbox [ref=e217]: un
+                      - cell "160" [ref=e218]:
+                        - spinbutton [ref=e219]: "160"
+                      - cell "R$ 160,00" [ref=e220]
+                      - cell "" [ref=e221]:
+                        - button "" [ref=e222] [cursor=pointer]:
+                          - generic [ref=e223]: 
+                    - row "BOB.RECON.DIV BOBINA RECONDICIONADA 1 un 96 R$ 96,00 " [ref=e224]:
+                      - cell "BOB.RECON.DIV" [ref=e225]:
+                        - textbox [ref=e226]: BOB.RECON.DIV
+                      - cell "BOBINA RECONDICIONADA" [ref=e227]:
+                        - textbox [ref=e228]: BOBINA RECONDICIONADA
+                      - cell "1" [ref=e229]:
+                        - spinbutton [ref=e230]: "1"
+                      - cell "un" [ref=e231]:
+                        - textbox [ref=e232]: un
+                      - cell "96" [ref=e233]:
+                        - spinbutton [ref=e234]: "96"
+                      - cell "R$ 96,00" [ref=e235]
+                      - cell "" [ref=e236]:
+                        - button "" [ref=e237] [cursor=pointer]:
+                          - generic [ref=e238]: 
+                - generic [ref=e239]:
+                  - button " Adicionar item" [ref=e240] [cursor=pointer]:
+                    - generic [ref=e241]: 
+                    - text: Adicionar item
+                  - button " Da Tabela Base" [ref=e242] [cursor=pointer]:
+                    - generic [ref=e243]: 
+                    - text: Da Tabela Base
+                  - button " Reimportar do técnico 3" [ref=e244] [cursor=pointer]:
+                    - generic [ref=e245]: 
+                    - text: Reimportar do técnico
+                    - generic [ref=e246]: "3"
+              - generic [ref=e247]:
+                - generic [ref=e248]:
+                  - generic [ref=e249]:
+                    - heading "Fechamento do orcamento" [level=6] [ref=e250]
+                    - paragraph [ref=e251]: Ajuste a mao de obra e registre a mensagem que o cliente deve receber neste equipamento.
+                  - generic [ref=e252]: Esses dados valem apenas para o equipamento ativo.
+                - generic [ref=e253]:
+                  - generic [ref=e254]:
+                    - generic [ref=e255]:
+                      - generic [ref=e256]:
+                        - generic [ref=e257]: Mao de obra
+                        - heading "Valor da mao de obra" [level=6] [ref=e258]
+                      - button "Sugerir valor" [ref=e259] [cursor=pointer]:
+                        - generic [ref=e260]: 
+                        - text: Sugerir valor
+                    - generic [ref=e261]:
+                      - generic [ref=e262]: "Selecionar da tabela M.O. (tipo: maquina)"
+                      - combobox [ref=e263]:
+                        - option "-- selecione para preencher automaticamente --" [selected]
+                        - option "ESMERIL RETO — R$ 60,00"
+                        - option "ESMERILHADEIRA 4\" — R$ 50,00"
+                        - option "ESMERILHADEIRA 7\" — R$ 70,00"
+                        - option "ESMERILHADEIRA 9\" — R$ 80,00"
+                        - option "FURADEIRA — R$ 50,00"
+                        - option "GUINCHO DE COLUNA — R$ 80,00"
+                        - option "LIXADEIRA DE CINTA — R$ 90,00"
+                        - option "LIXADEIRA DE PAREDE — R$ 70,00"
+                        - option "MARTELETE COMBINADO — R$ 120,00"
+                        - option "MARTELO 10KG — R$ 200,00"
+                        - option "MARTELO 16KG — R$ 250,00"
+                        - option "MARTELO 30KG — R$ 300,00"
+                        - option "MARTELO 5KG — R$ 170,00"
+                        - option "PARAFUSADEIRA — R$ 45,00"
+                        - option "PINADOR — R$ 50,00"
+                        - option "PLAINA — R$ 80,00"
+                        - option "PLAINA DE DESENGROSSO — R$ 120,00"
+                        - option "POLICORTE — R$ 80,00"
+                        - option "POLITRIZ — R$ 70,00"
+                        - option "RETIFICA — R$ 50,00"
+                        - option "SERRA CIRCULAR 7 1/4\" — R$ 60,00"
+                        - option "SERRA CIRCULAR 9 1/4\" — R$ 90,00"
+                        - option "SERRA ESQUADRIA / BANCADA — R$ 100,00"
+                        - option "SERRA MÁRMORE — R$ 50,00"
+                        - option "SERRA SABRE — R$ 70,00"
+                        - option "SERRA TICO-TICO — R$ 50,00"
+                        - option "TUPIA — R$ 45,00"
+                    - generic [ref=e264]: Valor em reais
+                    - generic [ref=e265]:
+                      - generic: R$
+                      - spinbutton "Valor em reais" [ref=e266]: "50"
+                    - generic [ref=e267]:
+                      - generic [ref=e268]: Total do equipamento
+                      - strong [ref=e269]: R$ 321,75
+                    - paragraph [ref=e270]:
+                      - generic [ref=e271]: 
+                      - text: Valor sugerido pela tabela de M.O. quando disponivel; ajuste manualmente se necessario. Nao baixa estoque.
+                  - generic [ref=e272]:
+                    - generic [ref=e274]:
+                      - generic [ref=e275]: Mensagem ao cliente
+                      - heading "Observacao para o cliente" [level=6] [ref=e276]
+                    - generic [ref=e277]: Observação para o cliente (Impressa no orçamento)
+                    - textbox "Observação para o cliente (Impressa no orçamento)" [ref=e278]:
+                      - /placeholder: Mensagem clara para o cliente...
+            - generic [ref=e279]:
+              - generic [ref=e280]:
+                - button " Enviar por WhatsApp" [disabled]:
+                  - generic: 
+                  - text: Enviar por WhatsApp
+                - button " Enviar por E-mail" [ref=e283] [cursor=pointer]:
+                  - generic [ref=e284]: 
+                  - text: Enviar por E-mail
+                - button " Imprimir/PDF" [ref=e285] [cursor=pointer]:
+                  - generic [ref=e286]: 
+                  - text: Imprimir/PDF
+                - button " Salvar orcamento" [ref=e287] [cursor=pointer]:
+                  - generic [ref=e288]: 
+                  - text: Salvar orcamento
+              - group [ref=e289]:
+                - generic " Ajuste administrativo" [ref=e290] [cursor=pointer]:
+                  - generic [ref=e291]: 
+                  - text: Ajuste administrativo
+                - option "Rascunho" [selected]
+                - option "Enviado"
+                - option "Aprovado"
+                - option "Cancelado"
+      - text:      
+      - dialog [active] [ref=e295]:
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - heading "Prévia da mensagem" [level=5] [ref=e298]:
+              - generic [ref=e299]: 
+              - text: Prévia da mensagem
+            - button "Fechar" [ref=e300] [cursor=pointer]
+          - generic [ref=e301]:
+            - generic [ref=e302]: Mensagem que será enviada
+            - textbox "Mensagem que será enviada" [ref=e303]: Boa noite, Naassom, tudo bem? Carlos aqui, da Multimáquinas. Segue o orçamento da OS *#20260507-001*. *Equipamento:* Mouse pad - 220V *Itens para o conserto:* • ROLAMENTO 6201 (1 un) • INDUZIDO RECONDICIONADO (1 un) • BOBINA RECONDICIONADA (1 un) *Total do orçamento:* *R$ 321,75* Deseja prosseguir com o orçamento? Prazo de entrega *até 20 dias úteis* após aprovação. Obrigado pela confiança! — Multimáquinas
+          - generic [ref=e304]:
+            - button "Cancelar" [ref=e305] [cursor=pointer]
+            - button "Enviar por WhatsApp" [ref=e306] [cursor=pointer]:
+              - generic [ref=e307]: 
+              - text: Enviar por WhatsApp
+      - text:     
+    - contentinfo [ref=e292]:
+      - generic [ref=e293]: © 2026 Multimaquinas — ERP
+      - generic [ref=e294]: v2.0

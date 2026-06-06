@@ -1,0 +1,23 @@
+// =====================================================================
+// Flatpickr — date picker
+// (importamos o CSS oficial via JS no plugin .js — aqui só overrides)
+// =====================================================================
+
+.flatpickr-calendar {
+    border: 1px solid $gray-200;
+    border-radius: $border-radius;
+    box-shadow: var(--shadow-3);
+    font-family: $font-family-sans-serif;
+
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+        background: $primary;
+        border-color: $primary;
+        color: $brand-darker;
+    }
+
+    .flatpickr-day:hover {
+        background: $brand-yellow-soft;
+    }
+}

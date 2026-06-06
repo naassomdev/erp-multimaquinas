@@ -1,0 +1,616 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Core\Auth;
+use App\Core\Database;
+use App\Repositories\NecessidadeCompraRepository;
+use App\Repositories\NotificacaoTecnicoRepository;
+use App\Repositories\OrcamentoRepository;
+use App\Repositories\OrdemServicoRepository;
+use App\Repositories\OsEquipamentoRepository;
+use App\Repositories\ProdutoRepository;
+use App\Repositories\TecnicoItemRepository;
+use App\Services\TecnicoService;
+use InvalidArgumentException;
+use Throwable;
+
+final class OrcamentoService
+{
+    public const TIPOS_VALIDOS = ['maquina', 'motor'];
+
+    public function __construct(
+        private readonly OrcamentoRepository         $repo            = new OrcamentoRepository(),
+        private readonly OrdemServicoRepository      $osRepo          = new OrdemServicoRepository(),
+        private readonly OsEquipamentoRepository     $equipRepo       = new OsEquipamentoRepository(),
+        private readonly AuditoriaService            $auditoria       = new AuditoriaService(),
+        private readonly TecnicoItemRepository       $itensRepo       = new TecnicoItemRepository(),
+        private readonly NecessidadeCompraRepository $necessidadeRepo = new NecessidadeCompraRepository(),
+        private readonly ProdutoRepository           $produtoRepo     = new ProdutoRepository(),
+        private readonly TecnicoService              $tecnicoService  = new TecnicoService(),
+        private readonly NotificacaoTecnicoRepository $notifRepo      = new NotificacaoTecnicoRepository(),
+        private readonly TemplateService             $templateService = new TemplateService(),
+    ) {}
+
+    public function listarPorOs(string $osId): array
+    {
+        return $this->repo->listarPorOs($osId);
+    }
+
+    /**
+     * Salva orçamento completo (cabeçalho + itens) em uma transação.
+     * Cria se não existe, atualiza se já existe (UNIQUE os_id+equip_idx).
+     *
+     * @param  array<string, mixed>            $cabecalho
+     * @param  array<int, array<string,mixed>> $itens
+     */
+    public function salvarCompleto(
+        string $osId,
+        int    $equipIdx,
+        array  $cabecalho,
+        array  $itens,
+    ): int {
+        if ($this->osRepo->buscarPorId($osId) === null) {
+            throw new InvalidArgumentException("OS não encontrada: {$osId}");
+        }
+        if ($this->equipRepo->buscar($osId, $equipIdx) === null) {
+            throw new InvalidArgumentException("Equipamento {$osId}#{$equipIdx} não encontrado");
+        }
+
+        $cab = $this->normalizarCabecalho($osId, $equipIdx, $cabecalho);
+
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            $existente = $this->repo->buscarPorOsEquip($osId, $equipIdx);
+
+            if ($existente === null) {
+                // ── CRIAÇÃO: orçamento novo ─────────────────────────────────────
+                $cab['status'] = 'rascunho';
+                $orcId = $this->repo->criar($cab);
+                $acao  = AuditoriaService::ACAO_INSERT;
+
+                // Regra 1: nenhum item veio do frontend → importa do técnico.
+                // Regra 8-11: a importação copia apenas descrição/código/qtd/valor_unit
+                //             NÃO dá baixa em estoque, NÃO gera financeiro,
+                //             NÃO aprova, NÃO muda status da OS.
+                if (empty($itens)) {
+                    $itens = $this->autoImportarItensTecnico($osId, $equipIdx);
+                }
+            } else {
+                // ── ATUALIZAÇÃO: orçamento existente ───────────────────────────
+                $orcId        = (int) $existente['id'];
+                $statusAtual  = (string) ($existente['status'] ?? 'rascunho');
+
+                $this->repo->atualizarCabecalho($orcId, $cab);
+                $acao = AuditoriaService::ACAO_UPDATE;
+
+                // Regra 2: rascunho + frontend não enviou itens → verificar se o
+                //          banco também está vazio; se estiver, importa do técnico.
+                // Regra 3: se o banco já tem itens, NÃO importa (preserva o que
+                //          a recepção já editou).
+                // Regra 5: status diferente de rascunho → nunca importa.
+                if ($statusAtual === 'rascunho' && empty($itens)) {
+                    $itensNoBanco = $this->repo->listarItens($orcId);
+                    if (empty($itensNoBanco)) {
+                        // Banco vazio + rascunho + frontend vazio → importa do técnico.
+                        // Isso cobre o caso "recepção abre rascunho vazio e clica Salvar".
+                        $itens = $this->autoImportarItensTecnico($osId, $equipIdx);
+                    } else {
+                        // Banco JÁ TEM itens e o frontend não enviou nenhum.
+                        // Proteção contra exclusão acidental por bug de serialização
+                        // ou requisição incompleta: mantém os itens existentes intactos.
+                        // Para remover TODOS os itens intencionalmente, o frontend
+                        // deve enviar ao menos um item válido e depois apagá-lo via UI,
+                        // ou enviar o campo explícito `limpar_itens=true` (futuro).
+                        $itens = $itensNoBanco;
+                    }
+                }
+                // Regra 4: se frontend enviou itens (mesmo que parciais), usa
+                //          exatamente o que veio — preserva preços e quantidades
+                //          já ajustados pela recepção.
+            }
+
+            $this->repo->excluirItens($orcId);
+            foreach (array_values($itens) as $idx => $item) {
+                if (!is_array($item)) continue;
+                $desc = trim((string) ($item['descricao'] ?? ''));
+                if ($desc === '') continue;
+                $this->repo->inserirItem($orcId, $idx, $item);
+            }
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+
+
+        $this->auditoria->registrar('orcamentos', (string) $orcId, $acao, [
+            'os_id'     => $osId,
+            'equip_idx' => $equipIdx,
+            'total'     => $cab['total'],
+            'mo_valor'  => $cab['mo_valor'],
+            'tecnico'   => $cab['tecnico'],
+            'qtd_itens' => count($itens),
+        ]);
+
+        return $orcId;
+    }
+
+    /**
+     * Atualização parcial (PATCH). Auditoria registra os campos efetivamente aplicados.
+     *
+     * @param  array<string, mixed> $campos
+     * @return array<string, mixed>
+     */
+    public function atualizarCampos(int $id, array $campos): array
+    {
+        $orcAntes = $this->repo->buscarPorId($id);
+        if ($orcAntes === null) {
+            throw new InvalidArgumentException("Orçamento não encontrado: {$id}");
+        }
+
+        // Bloqueia transição manual para 'retirado' — deve ocorrer apenas via fluxo de retirada da OS.
+        if (isset($campos['status']) && $campos['status'] === 'retirado') {
+            throw new InvalidArgumentException(
+                "Status 'retirado' não pode ser definido manualmente no orçamento. " .
+                "Use o fluxo oficial de retirada da OS."
+            );
+        }
+        // 'pago' é reflexo exclusivo do sistema financeiro.
+        // Qualquer atualização manual (pago=0 ou pago=1) é bloqueada aqui.
+        // Fluxos oficiais que alteram 'pago': retirarEquipamento(), retirar(), reabrir()
+        // — todos usam UPDATE direto, fora do atualizarCampos().
+        if (array_key_exists('pago', $campos)) {
+            throw new InvalidArgumentException(
+                "O campo 'pago' não pode ser alterado manualmente. " .
+                "Ele é atualizado automaticamente pelo sistema financeiro."
+            );
+        }
+
+        $aplicados = $this->repo->atualizarParcial($id, $campos);
+        if (!empty($aplicados)) {
+            $this->auditoria->registrar(
+                'orcamentos',
+                (string) $id,
+                AuditoriaService::ACAO_UPDATE,
+                $aplicados,
+            );
+        }
+
+        // Quando o orçamento muda para "aprovado", dispara geração de necessidades,
+        // tenta promover o equipamento para montagem e notifica o técnico.
+        if (
+            isset($aplicados['status']) && $aplicados['status'] === 'aprovado'
+            && ($orcAntes['status'] ?? '') !== 'aprovado'
+        ) {
+            $this->gerarNecessidadesDaOs((string) $orcAntes['os_id']);
+            $statusEquip = $this->tentarPromoverMontagem((string) $orcAntes['os_id'], (int) $orcAntes['equip_idx']);
+            $this->notificarTecnico(
+                (string) $orcAntes['os_id'],
+                (int) $orcAntes['equip_idx'],
+                'aprovado',
+                $statusEquip === 'montagem'
+                    ? 'Orçamento aprovado — iniciar montagem/conserto.'
+                    : 'Orçamento aprovado — verificar estoque/peças antes de montar.'
+            );
+        }
+
+        // Quando o orçamento muda para "cancelado", notifica o técnico para remontar —
+        // exceto se o descarte já foi autorizado (técnico deve descartar, não remontar).
+        if (
+            isset($aplicados['status']) && $aplicados['status'] === 'cancelado'
+            && ($orcAntes['status'] ?? '') !== 'cancelado'
+        ) {
+            $osId     = (string) $orcAntes['os_id'];
+            $equipIdx = (int) $orcAntes['equip_idx'];
+            $equip    = $this->equipRepo->buscar($osId, $equipIdx);
+            $descarteAutorizado = $equip !== null && !empty($equip['descarte_autorizado_em']);
+
+            if (!$descarteAutorizado) {
+                $this->notificarTecnico(
+                    $osId,
+                    $equipIdx,
+                    'cancelado',
+                    'Cliente recusou o orçamento — remontar para devolução.'
+                );
+            }
+            // Se descarte já autorizado: não cria notificação de cancelamento.
+            // O fluxo de descarte (9C) já criou/criará a notificação tipo 'descarte'.
+        }
+
+        return $aplicados;
+    }
+
+    /**
+     * Pré-aprovação iniciada pelo técnico (pula etapa administrativa).
+     */
+    public function preAprovar(string $osId, int $equipIdx): int
+    {
+        if ($this->equipRepo->buscar($osId, $equipIdx) === null) {
+            throw new InvalidArgumentException("Equipamento {$osId}#{$equipIdx} não encontrado");
+        }
+
+        // Captura status atual antes da pré-aprovação para detectar transição real
+        // e evitar notificações duplicadas caso o método seja chamado novamente.
+        $orcAntes    = $this->repo->buscarPorOsEquip($osId, $equipIdx);
+        $statusAntes = $orcAntes !== null ? (string) ($orcAntes['status'] ?? '') : '';
+
+        $hoje = date('Y-m-d');
+        $orcId = $this->repo->aprovarPreviamente($osId, $equipIdx, $hoje);
+
+        $this->auditoria->registrar(
+            'orcamentos',
+            (string) $orcId,
+            AuditoriaService::ACAO_UPDATE,
+            [
+                'pre_aprovacao'  => true,
+                'os_id'          => $osId,
+                'equip_idx'      => $equipIdx,
+                'data_aprovado'  => $hoje,
+            ],
+        );
+
+        $this->gerarNecessidadesDaOs($osId);
+        $statusEquip = $this->tentarPromoverMontagem($osId, $equipIdx);
+
+        if ($statusAntes !== 'aprovado') {
+            $this->notificarTecnico(
+                $osId,
+                $equipIdx,
+                'aprovado',
+                $statusEquip === 'montagem'
+                    ? 'Orçamento aprovado — iniciar montagem/conserto.'
+                    : 'Orçamento aprovado — verificar estoque/peças antes de montar.'
+            );
+        }
+
+        return $orcId;
+    }
+
+    /**
+     * Gera os dados necessários para enviar o orçamento via WhatsApp.
+     * Atualiza `wpp_enviado_em` ao confirmar o envio.
+     *
+     * @return array{mensagem:string, telefone:string, wpp_url:string}
+     * @throws InvalidArgumentException se orçamento não encontrado ou sem telefone
+     */
+    public function gerarDadosWhatsapp(int $orcId, bool $registrarEnvio = true): array
+    {
+        $dados = $this->repo->buscarParaWhatsapp($orcId);
+        if ($dados === null) {
+            throw new InvalidArgumentException("Orçamento não encontrado: {$orcId}");
+        }
+
+        $telefone = preg_replace('/\D/', '', (string) ($dados['telefone'] ?? ''));
+        if ($telefone === '') {
+            throw new InvalidArgumentException('Cliente sem telefone cadastrado. Atualize o cadastro da OS antes de enviar.');
+        }
+        if (!str_starts_with($telefone, '55')) {
+            $telefone = '55' . $telefone;
+        }
+
+        $itens = $this->repo->listarItens($orcId);
+        $mensagem = $this->montarMensagemWhatsappOrcamento($dados, $itens);
+        $wppUrl   = 'https://wa.me/' . $telefone . '?text=' . rawurlencode($mensagem);
+
+        if ($registrarEnvio) {
+            // Registra data/hora apenas quando o usuário confirma o envio.
+            // Se o orçamento ainda estiver em rascunho, avança para 'enviado' automaticamente.
+            // Status já avançados (aprovado, cancelado, pronto, retirado) não são rebaixados.
+            $atualizacoes = ['wpp_enviado_em' => date('Y-m-d H:i:s')];
+            if ($dados['status'] === 'rascunho') {
+                $atualizacoes['status'] = 'enviado';
+            }
+            $this->repo->atualizarParcial($orcId, $atualizacoes);
+        }
+
+        return [
+            'mensagem' => $mensagem,
+            'telefone' => $telefone,
+            'wpp_url'  => $wppUrl,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $dados
+     * @param array<int, array<string, mixed>> $itens
+     */
+    private function montarMensagemWhatsappOrcamento(array $dados, array $itens): string
+    {
+        $nomeCliente = $this->normalizarNomeExibicao((string) ($dados['nome_cliente'] ?? ''));
+        if ($nomeCliente === '') {
+            $nomeCliente = 'cliente';
+        }
+
+        $remetente = $this->normalizarNomeExibicao($this->primeiroNome((string) (Auth::user()['nome'] ?? '')));
+        if ($remetente === '') {
+            $remetente = 'Equipe Multimáquinas';
+        }
+
+        $equipamentoNome = trim((string) ($dados['equip_nome'] ?? ''));
+        if ($equipamentoNome === '') {
+            $equipamentoNome = 'Equipamento não informado';
+        }
+
+        $linhasItens = [];
+        foreach ($itens as $item) {
+            $desc = trim((string) ($item['descricao'] ?? ''));
+            if ($desc === '') {
+                continue;
+            }
+
+            $qtd = (float) ($item['qtd'] ?? 1);
+            $unidade = trim((string) ($item['unidade'] ?? 'un')) ?: 'un';
+            $qtdStr = ($qtd == (int) $qtd) ? (string) (int) $qtd : rtrim(rtrim(number_format($qtd, 3, '.', ''), '0'), '.');
+            $linhasItens[] = "• {$desc} ({$qtdStr} {$unidade})";
+        }
+
+        if (empty($linhasItens)) {
+            $linhasItens[] = '(sem itens cadastrados — revise o orçamento)';
+        }
+
+        $total = (float) ($dados['total'] ?? 0);
+        $totalBrl = 'R$ ' . number_format($total, 2, ',', '.');
+        $equipamentoNumero = ((int) ($dados['equip_idx'] ?? 0)) + 1;
+        $observacao = $this->normalizarObservacaoCliente($dados);
+        $diagnosticoBloco = '';
+        if ($observacao !== '') {
+            $diagnosticoBloco = "\n*Diagnóstico / serviço:*\n" . $observacao;
+        }
+
+        $vars = [
+            'saudacao'           => $this->saudacaoPorHorario(),
+            'cliente_nome'       => $nomeCliente,
+            'remetente_nome'     => $remetente,
+            'os_id'              => (string) ($dados['os_id'] ?? ''),
+            'equipamento_numero' => (string) $equipamentoNumero,
+            'equipamento_nome'   => $equipamentoNome,
+            'itens_lista'        => implode("\n", $linhasItens),
+            'total_brl'          => $totalBrl,
+            'diagnostico_bloco'  => $diagnosticoBloco,
+        ];
+
+        $template = ((string) ($dados['status'] ?? '')) === 'enviado'
+            ? 'orcamento_os_lembrete'
+            : 'orcamento_os';
+
+        return $this->templateService->render($template, $vars);
+    }
+
+    /**
+     * @param array<string, mixed> $dados
+     */
+    private function normalizarObservacaoCliente(array $dados): string
+    {
+        $observacao = trim((string) ($dados['obs_cli'] ?? ''));
+        if ($observacao === '') {
+            $observacao = trim((string) ($dados['obs_admin'] ?? ''));
+        }
+
+        return $observacao;
+    }
+
+    private function saudacaoPorHorario(): string
+    {
+        $hora = (int) date('H');
+        if ($hora < 12) {
+            return 'Bom dia';
+        }
+        if ($hora < 18) {
+            return 'Boa tarde';
+        }
+
+        return 'Boa noite';
+    }
+
+    private function primeiroNome(string $nome): string
+    {
+        $nome = trim($nome);
+        if ($nome === '') {
+            return '';
+        }
+
+        $partes = preg_split('/\s+/', $nome);
+        return trim((string) ($partes[0] ?? $nome));
+    }
+
+    private function normalizarNomeExibicao(string $nome): string
+    {
+        $nome = trim(preg_replace('/\s+/', ' ', $nome) ?? '');
+        if ($nome === '') {
+            return '';
+        }
+
+        if (function_exists('mb_convert_case') && function_exists('mb_strtolower')) {
+            return mb_convert_case(mb_strtolower($nome, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+        }
+
+        return ucwords(strtolower($nome));
+    }
+
+    /**
+     * Tenta promover o equipamento para "montagem" após aprovação.
+     * Retorna o status resultante: 'montagem' se promoveu, status atual se não.
+     * Em caso de exceção, registra log e retorna 'andamento' (assume não promovido).
+     */
+    private function tentarPromoverMontagem(string $osId, int $equipIdx): string
+    {
+        try {
+            return $this->tecnicoService->promoverMontagemSeEligivel($osId, $equipIdx);
+        } catch (Throwable $e) {
+            // Silencioso para o usuário — aprovação não pode ser interrompida.
+            error_log("[OrcamentoService] tentarPromoverMontagem({$osId}#{$equipIdx}) falhou: " . $e->getMessage());
+            return 'andamento';
+        }
+    }
+
+    /**
+     * Cria notificação no painel técnico (best-effort — nunca quebra o fluxo).
+     * Mensagem não contém valores financeiros.
+     */
+    private function notificarTecnico(string $osId, int $equipIdx, string $tipo, string $mensagem): void
+    {
+        try {
+            $this->notifRepo->criar($osId, $equipIdx, $tipo, $mensagem);
+        } catch (Throwable $e) {
+            error_log("[OrcamentoService] notificarTecnico({$osId}#{$equipIdx}, {$tipo}) falhou: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Para cada item técnico da OS, cria necessidade de compra quando a peça
+     * não está disponível em estoque ou não tem produto cadastrado.
+     *
+     * Regras:
+     *   - produto_id = NULL (item manual): sempre cria — peça física sem cadastro
+     *   - produto com controla_estoque = 0: pula (serviço / M.O.)
+     *   - produto com estoque_qty >= qtd: pula (estoque suficiente)
+     *   - produto com estoque_qty < qtd: cria para a diferença (qtd - estoque_qty)
+     *
+     * Idempotência: verifica tecnico_item_id antes de criar — seguro para reaprovar.
+     * Falhas aqui não propagam para o fluxo principal (best-effort).
+     */
+    private function gerarNecessidadesDaOs(string $osId): void
+    {
+        try {
+            $itens = $this->itensRepo->listarTodosPorOs($osId);
+            if (empty($itens)) return;
+
+            $pdo = Database::pdo();
+            foreach ($itens as $item) {
+                $tecnicoItemId = (int) $item['id'];
+                $qtdNecessaria = (float) ($item['qtd'] ?? 1);
+
+                // Idempotência: tecnico_item_id é a chave lógica de duplicidade
+                if ($this->necessidadeRepo->existePendentePorTecnicoItem($tecnicoItemId)) {
+                    continue;
+                }
+
+                $rawProdutoId = $item['produto_id'];
+                $produtoId = ($rawProdutoId !== null && (int) $rawProdutoId > 0)
+                    ? (int) $rawProdutoId
+                    : null;
+
+                $qtdNecessidade = $qtdNecessaria;
+
+                if ($produtoId !== null) {
+                    // Produto cadastrado: verificar estoque
+                    $st = $pdo->prepare(
+                        "SELECT controla_estoque, estoque_qty FROM produtos WHERE id = ? LIMIT 1"
+                    );
+                    $st->execute([$produtoId]);
+                    $prod = $st->fetch(PDO::FETCH_ASSOC);
+
+                    if ($prod === false) continue; // produto inexistente — skip
+                    if ((int) $prod['controla_estoque'] === 0) continue; // serviço/M.O. — skip
+
+                    $estoqueQty = (float) $prod['estoque_qty'];
+                    if ($estoqueQty >= $qtdNecessaria) continue; // estoque suficiente — skip
+
+                    // Criar só para a diferença (o que falta no estoque)
+                    $qtdNecessidade = round($qtdNecessaria - $estoqueQty, 3);
+                    if ($qtdNecessidade <= 0) continue;
+                }
+                // produto_id = NULL: item manual — cria necessidade com qtd integral
+
+                $this->necessidadeRepo->criar([
+                    'os_id'           => $osId,
+                    'equip_idx'       => (int) ($item['equip_idx'] ?? 0),
+                    'produto_id'      => $produtoId,
+                    'tecnico_item_id' => $tecnicoItemId,
+                    'codigo'          => (string) ($item['codigo'] ?? ''),
+                    'descricao'       => (string) ($item['descricao'] ?? ''),
+                    'qtd'             => $qtdNecessidade,
+                ]);
+            }
+        } catch (Throwable $e) {
+            error_log("[OS {$osId}] geração de necessidades_compra falhou: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Busca os itens registrados pelo técnico (tecnico_itens) e os converte
+     * para o formato esperado por orcamento_itens, incluindo preço do produto.
+     * Usado automaticamente ao criar um orçamento sem itens fornecidos.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function autoImportarItensTecnico(string $osId, int $equipIdx): array
+    {
+        try {
+            $tecnicoItens = $this->itensRepo->listarPorEquipamento($osId, $equipIdx);
+            if (empty($tecnicoItens)) {
+                return [];
+            }
+
+            $pdo = Database::pdo();
+            $orcItens = [];
+
+            foreach ($tecnicoItens as $ti) {
+                $valorUnit = (float) ($ti['valor_unit'] ?? 0);
+
+                // Verifica disponibilidade em estoque para o campo em_estoque
+                $emEstoque = 0;
+                $produtoId = isset($ti['produto_id']) ? (int) $ti['produto_id'] : 0;
+                if ($produtoId > 0) {
+                    $stk = $pdo->prepare('SELECT estoque_qty FROM produtos WHERE id = ? AND ativo = 1 LIMIT 1');
+                    $stk->execute([$produtoId]);
+                    $qty = (float) ($stk->fetchColumn() ?: 0);
+                    $emEstoque = $qty >= (float) ($ti['qtd'] ?? 1) ? 1 : 0;
+                }
+
+                $orcItens[] = [
+                    'descricao'   => (string) ($ti['descricao'] ?? ''),
+                    'codigo'      => (string) ($ti['codigo'] ?? ''),
+                    'qtd'         => (float) ($ti['qtd'] ?? 1),
+                    'unidade'     => 'un',
+                    'valor_unit'  => $valorUnit,
+                    'valor_total' => round((float) ($ti['qtd'] ?? 1) * $valorUnit, 2),
+                    'em_estoque'  => $emEstoque,
+                    'data_pedido' => null,
+                    'obs'         => '',
+                ];
+            }
+
+            return $orcItens;
+        } catch (Throwable $e) {
+            // Falha na auto-importação não deve impedir a criação do orçamento.
+            error_log("[OrcamentoService] autoImportarItensTecnico falhou: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * @param  array<string, mixed> $cab
+     * @return array<string, mixed>
+     */
+    private function normalizarCabecalho(string $osId, int $equipIdx, array $cab): array
+    {
+        $tipo = (string) ($cab['tipo'] ?? 'maquina');
+        if (!in_array($tipo, self::TIPOS_VALIDOS, true)) $tipo = 'maquina';
+
+        $moValor = (float) ($cab['mo_valor'] ?? 0);
+        if ($moValor < 0) $moValor = 0.0;
+
+        $total = (float) ($cab['total'] ?? 0);
+        if ($total < 0) $total = 0.0;
+
+        $dataOrc = $cab['data_orcamento'] ?? null;
+        if ($dataOrc === '' || $dataOrc === false) $dataOrc = null;
+
+        return [
+            'os_id'          => $osId,
+            'equip_idx'      => $equipIdx,
+            'tipo'           => $tipo,
+            'tecnico'        => trim((string) ($cab['tecnico'] ?? '')),
+            'gerado_por'     => trim((string) ($cab['gerado_por'] ?? '')),
+            'obs_admin'      => trim((string) ($cab['obs_admin'] ?? '')),
+            'mo_valor'       => round($moValor, 2),
+            'total'          => round($total, 2),
+            'data_orcamento' => $dataOrc,
+        ];
+    }
+}

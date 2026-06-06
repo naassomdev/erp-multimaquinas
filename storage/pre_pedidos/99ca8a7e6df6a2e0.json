@@ -1,0 +1,18 @@
+{
+    "slug": "99ca8a7e6df6a2e0",
+    "numero": "0002/2026",
+    "criado_em": "2026-05-12 10:37:34",
+    "criado_por": "Administrador",
+    "cliente": {
+        "nome": "Rogerio",
+        "telefone": "11973976711",
+        "email": ""
+    },
+    "item": {
+        "descricao": "BATERIA LI-ION TI-21/4000P - TITANIUM",
+        "qtd": 1,
+        "valor": 449.99,
+        "total": 449.99
+    },
+    "foto_url": "/uploads/os/pp-20260512/0/fotos/380a31dbe7428408.webp"
+}
