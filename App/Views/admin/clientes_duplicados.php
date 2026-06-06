@@ -7,7 +7,30 @@ use App\Core\View;
  * @var array  $totais      Contagens por critério
  */
 
-$fmtData = fn(string $d): string => $d ? date('d/m/Y', strtotime($d)) : '—';
+$candidatos = is_array($candidatos ?? null) ? $candidatos : [];
+$porMotivo  = is_array($porMotivo ?? null) ? $porMotivo : [];
+$totais     = array_merge([
+    'total' => 0,
+    'cpf' => 0,
+    'email' => 0,
+    'telefone' => 0,
+], is_array($totais ?? null) ? $totais : []);
+
+$fmtData = static function (mixed $data): string {
+    $data = trim((string) $data);
+    if ($data === '') {
+        return '—';
+    }
+
+    $timestamp = strtotime($data);
+    return $timestamp !== false ? date('d/m/Y', $timestamp) : '—';
+};
+
+$slugMotivo = static function (mixed $motivo): string {
+    $slug = preg_replace('/\W+/', '-', strtolower((string) $motivo));
+    $slug = trim((string) $slug, '-');
+    return $slug !== '' ? $slug : 'sem-criterio';
+};
 
 $badgeMotivo = [
     'CPF/CNPJ igual'        => 'text-bg-danger',
@@ -103,9 +126,9 @@ $badgeMotivo = [
         <?php foreach ($porMotivo as $motivo => $pares): ?>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab"
-                    data-bs-target="#tab-<?= htmlspecialchars(preg_replace('/\W+/', '-', strtolower($motivo)) ?? '') ?>">
+                    data-bs-target="#tab-<?= View::e($slugMotivo($motivo)) ?>">
                 <?= View::e($motivo) ?>
-                <span class="badge <?= $badgeMotivo[$motivo] ?? 'text-bg-secondary' ?> ms-1"><?= count($pares) ?></span>
+                <span class="badge <?= $badgeMotivo[$motivo] ?? 'text-bg-secondary' ?> ms-1"><?= count((array) $pares) ?></span>
             </button>
         </li>
         <?php endforeach; ?>
@@ -120,8 +143,8 @@ $badgeMotivo = [
 
         <!-- Abas por critério -->
         <?php foreach ($porMotivo as $motivo => $pares): ?>
-        <div class="tab-pane fade" id="tab-<?= htmlspecialchars(preg_replace('/\W+/', '-', strtolower($motivo)) ?? '') ?>">
-            <?php $this->renderTabela($pares, $badgeMotivo, $fmtData) ?>
+        <div class="tab-pane fade" id="tab-<?= View::e($slugMotivo($motivo)) ?>">
+            <?php renderTabela((array) $pares, $badgeMotivo, $fmtData) ?>
         </div>
         <?php endforeach; ?>
 
@@ -158,10 +181,36 @@ function renderTabela(array $candidatos, array $badgeMotivo, callable $fmtData):
         </thead>
         <tbody>
         <?php foreach ($candidatos as $par): ?>
+            <?php
+            $par = array_merge([
+                'id_a' => 0,
+                'nome_a' => '',
+                'fantasia_a' => '',
+                'cpf_a' => '',
+                'email_a' => '',
+                'telefone_a' => '',
+                'celular_a' => '',
+                'os_a' => 0,
+                'created_a' => '',
+                'id_b' => 0,
+                'nome_b' => '',
+                'fantasia_b' => '',
+                'cpf_b' => '',
+                'email_b' => '',
+                'telefone_b' => '',
+                'celular_b' => '',
+                'os_b' => 0,
+                'created_b' => '',
+                'motivo' => 'Sem critério',
+            ], is_array($par) ? $par : []);
+            $idA = (int) $par['id_a'];
+            $idB = (int) $par['id_b'];
+            $motivo = trim((string) $par['motivo']) ?: 'Sem critério';
+            ?>
             <tr>
                 <td>
-                    <span class="badge <?= $badgeMotivo[$par['motivo']] ?? 'text-bg-secondary' ?>">
-                        <?= View::e($par['motivo']) ?>
+                    <span class="badge <?= $badgeMotivo[$motivo] ?? 'text-bg-secondary' ?>">
+                        <?= View::e($motivo) ?>
                     </span>
                 </td>
                 <!-- Cliente A -->
@@ -183,9 +232,9 @@ function renderTabela(array $candidatos, array $badgeMotivo, callable $fmtData):
                 </td>
                 <td class="text-mono"><?= $fmtData((string)($par['created_a'] ?? '')) ?></td>
                 <td>
-                    <a href="/clientes/<?= (int)$par['id_a'] ?>" target="_blank"
-                       class="btn btn-xs btn-outline-secondary" title="Ver ficha #<?= (int)$par['id_a'] ?>">
-                        #<?= (int)$par['id_a'] ?> <i class="ph ph-arrow-square-out"></i>
+                    <a href="/clientes/<?= $idA ?>" target="_blank"
+                       class="btn btn-xs btn-outline-secondary" title="Ver ficha #<?= $idA ?>">
+                        #<?= $idA ?> <i class="ph ph-arrow-square-out"></i>
                     </a>
                 </td>
                 <!-- VS -->
@@ -208,15 +257,14 @@ function renderTabela(array $candidatos, array $badgeMotivo, callable $fmtData):
                 </td>
                 <td class="text-mono"><?= $fmtData((string)($par['created_b'] ?? '')) ?></td>
                 <td>
-                    <a href="/clientes/<?= (int)$par['id_b'] ?>" target="_blank"
-                       class="btn btn-xs btn-outline-secondary" title="Ver ficha #<?= (int)$par['id_b'] ?>">
-                        #<?= (int)$par['id_b'] ?> <i class="ph ph-arrow-square-out"></i>
+                    <a href="/clientes/<?= $idB ?>" target="_blank"
+                       class="btn btn-xs btn-outline-secondary" title="Ver ficha #<?= $idB ?>">
+                        #<?= $idB ?> <i class="ph ph-arrow-square-out"></i>
                     </a>
                 </td>
                 <td class="text-center text-nowrap">
                     <?php
                     // Sugestão de destino: prioridade CPF → mais OS → email → menor ID
-                    $idA = (int)$par['id_a']; $idB = (int)$par['id_b'];
                     $scoreA = 0; $scoreB = 0;
                     if (trim((string)($par['cpf_a'] ?? '')) !== '') $scoreA += 100;
                     if (trim((string)($par['cpf_b'] ?? '')) !== '') $scoreB += 100;
@@ -231,11 +279,15 @@ function renderTabela(array $candidatos, array $badgeMotivo, callable $fmtData):
                         $sugDestino = $idB; $sugOrigem = $idA;
                     }
                     ?>
+                    <?php if ($idA > 0 && $idB > 0): ?>
                     <a href="/admin/clientes/<?= $sugOrigem ?>/mesclar-em/<?= $sugDestino ?>"
                        class="btn btn-xs btn-outline-danger"
                        title="Comparar e mesclar #<?= $sugOrigem ?> → #<?= $sugDestino ?>">
                         <i class="ph ph-git-merge me-1"></i>Mesclar
                     </a>
+                    <?php else: ?>
+                        <span class="text-muted">—</span>
+                    <?php endif; ?>
                 </td>
             </tr>
         <?php endforeach; ?>

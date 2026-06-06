@@ -33,7 +33,10 @@ final class ClienteDuplicadosController
     {
         $this->assertAdmin();
 
-        $candidatos = $this->repo->listarCandidatosDuplicados();
+        $candidatos = array_map(
+            fn(array $par): array => $this->normalizarCandidatoDuplicado($par),
+            $this->repo->listarCandidatosDuplicados()
+        );
         $porMotivo  = [];
         foreach ($candidatos as $par) {
             $porMotivo[$par['motivo']][] = $par;
@@ -186,5 +189,44 @@ final class ClienteDuplicadosController
             $sugestoes[$campo] = ($valOrig !== '' && $valDest === '');
         }
         return $sugestoes;
+    }
+
+    /**
+     * Garante que a view receba todas as chaves esperadas para cada par.
+     *
+     * @param array<string, mixed> $par
+     * @return array<string, mixed>
+     */
+    private function normalizarCandidatoDuplicado(array $par): array
+    {
+        $normalizado = array_merge([
+            'id_a' => 0,
+            'nome_a' => '',
+            'fantasia_a' => '',
+            'cpf_a' => '',
+            'email_a' => '',
+            'telefone_a' => '',
+            'celular_a' => '',
+            'os_a' => 0,
+            'created_a' => '',
+            'id_b' => 0,
+            'nome_b' => '',
+            'fantasia_b' => '',
+            'cpf_b' => '',
+            'email_b' => '',
+            'telefone_b' => '',
+            'celular_b' => '',
+            'os_b' => 0,
+            'created_b' => '',
+            'motivo' => 'Sem critério',
+        ], $par);
+
+        $normalizado['id_a'] = (int) $normalizado['id_a'];
+        $normalizado['id_b'] = (int) $normalizado['id_b'];
+        $normalizado['os_a'] = (int) $normalizado['os_a'];
+        $normalizado['os_b'] = (int) $normalizado['os_b'];
+        $normalizado['motivo'] = trim((string) $normalizado['motivo']) ?: 'Sem critério';
+
+        return $normalizado;
     }
 }
