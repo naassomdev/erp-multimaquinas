@@ -53,6 +53,12 @@ final class ProdutoApiController
             if (!$hidePrices) {
                 $base['valor_venda'] = round($valorVenda, 2);
             }
+            // Fase 4: quando o item foi encontrado por um código ANTIGO/alternativo,
+            // sinaliza para o front exibir o aviso (código digitado -> produto atual).
+            if (!empty($p['via_codigo_alternativo'])) {
+                $base['via_codigo_alternativo'] = (string) $p['via_codigo_alternativo'];
+                $base['via_codigo_tipo']        = (string) ($p['via_codigo_tipo'] ?? 'antigo');
+            }
             return $base;
         }, $produtos);
 

@@ -1169,14 +1169,30 @@
                     </li>`;
             }
 
+            // Fase 4: item encontrado por código ANTIGO/alternativo.
+            const viaLabel = {
+                antigo: 'código antigo',
+                fornecedor: 'código do fornecedor',
+                fabricante: 'código do fabricante',
+                outro: 'código alternativo',
+            };
+            const viaAviso = p.via_codigo_alternativo
+                ? `<div class="ac-via-antigo" style="color:var(--bs-warning-text-emphasis);font-size:.78rem;margin-top:.15rem;">
+                       <i class="ph ph-arrows-merge"></i> ${viaLabel[p.via_codigo_tipo] || 'código alternativo'}
+                       <span class="text-mono">${escapeHtml(p.via_codigo_alternativo)}</span>
+                       → atual <span class="text-mono">${escapeHtml(p.codigo)}</span>
+                   </div>`
+                : '';
+
             return `
-                <li class="ac-item"
+                <li class="ac-item${p.via_codigo_alternativo ? ' ac-item--via-antigo' : ''}"
                     data-id="${escapeHtml(p.id)}"
                     data-codigo="${escapeHtml(p.codigo)}"
                     data-descricao="${escapeHtml(p.descricao)}">
                     <div>
                         <strong>${escapeHtml(p.descricao)}</strong>
                         ${p.marca ? `<span class="ac-marca">${escapeHtml(p.marca)}</span>` : ''}
+                        ${viaAviso}
                     </div>
                     <div class="ac-meta">
                         <span class="text-mono">${escapeHtml(p.codigo)}</span>
