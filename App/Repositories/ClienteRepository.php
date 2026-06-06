@@ -569,6 +569,124 @@ final class ClienteRepository
         return $resultados;
     }
 
+    /**
+     * Busca clientes possíveis duplicados para alertar no momento do cadastro.
+     * Critérios: CPF/CNPJ, E-mail, ou Telefones iguais.
+     * Retorna no máximo 5 sugestões.
+     */
+    public function buscarPossiveisDuplicadosCadastro(array $dados, ?int $ignorarId = null): array
+    {
+        $pdo = Database::pdo();
+        
+        $cpfCnpj = preg_replace('/\D/', '', $dados['cpf_cnpj'] ?? '');
+        $email = trim(strtolower($dados['email'] ?? ''));
+        
+        $telefones = [
+            preg_replace('/\D/', '', $dados['telefone'] ?? ''),
+            preg_replace('/\D/', '', $dados['telefone2'] ?? ''),
+            preg_replace('/\D/', '', $dados['celular'] ?? ''),
+            preg_replace('/\D/', '', $dados['fone'] ?? ''),
+        ];
+        $telefones = array_filter($telefones, fn($t) => strlen($t) >= 9); // Apenas números consistentes (considerando apenas a parte local + ddd)
+        
+        // Se nenhum campo preenchido, não há o que buscar
+        if ($cpfCnpj === '' && $email === '' && empty($telefones)) {
+            return [];
+        }
+
+        $condicoes = [];
+        $params = [];
+
+        if ($cpfCnpj !== '') {
+            $condicoes[] = $this->documentoNumericoExpr('cpf_cnpj') . ' = :cpf_cnpj';
+            $params[':cpf_cnpj'] = $cpfCnpj;
+        }
+
+        if ($email !== '') {
+            $condicoes[] = 'email = :email';
+            $params[':email'] = $email;
+        }
+
+        if (!empty($telefones)) {
+            $tConds = [];
+            foreach (array_values($telefones) as $i => $tel) {
+                // Pegar os últimos 9 digitos para comparação
+                $tel9 = substr($tel, -9);
+                $p1 = ":tel_{$i}_1";
+                $p2 = ":tel_{$i}_2";
+                $p3 = ":tel_{$i}_3";
+                $p4 = ":tel_{$i}_4";
+                $params[$p1] = "%{$tel9}";
+                $params[$p2] = "%{$tel9}";
+                $params[$p3] = "%{$tel9}";
+                $params[$p4] = "%{$tel9}";
+                $tConds[] = "(
+                    REGEXP_REPLACE(telefone, '[^0-9]', '') LIKE {$p1} OR
+                    REGEXP_REPLACE(telefone2, '[^0-9]', '') LIKE {$p2} OR
+                    REGEXP_REPLACE(celular, '[^0-9]', '') LIKE {$p3} OR
+                    REGEXP_REPLACE(fone, '[^0-9]', '') LIKE {$p4}
+                )";
+            }
+            $condicoes[] = '(' . implode(' OR ', $tConds) . ')';
+        }
+
+        $whereCond = implode(' OR ', $condicoes);
+
+        $sql = "
+            SELECT id, nome, nome_fantasia, cpf_cnpj, email, telefone, celular, created_at,
+            (SELECT COUNT(*) FROM ordem_servico WHERE cliente_id = clientes.id) as qtd_os
+            FROM clientes
+            WHERE ativo = 1 AND merged_into_id IS NULL
+              AND ({$whereCond})
+        ";
+
+        if ($ignorarId !== null) {
+            $sql .= " AND id != :ignorar_id";
+            $params[':ignorar_id'] = $ignorarId;
+        }
+
+        $sql .= " ORDER BY qtd_os DESC, id DESC LIMIT 5";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Identificar motivos
+        foreach ($resultados as &$r) {
+            $motivos = [];
+            $rCpf = preg_replace('/\D/', '', $r['cpf_cnpj'] ?? '');
+            if ($cpfCnpj !== '' && $rCpf === $cpfCnpj) {
+                $motivos[] = 'CPF/CNPJ igual';
+            }
+            if ($email !== '' && strtolower($r['email'] ?? '') === $email) {
+                $motivos[] = 'E-mail igual';
+            }
+            
+            $rTels = [
+                preg_replace('/\D/', '', $r['telefone'] ?? ''),
+                preg_replace('/\D/', '', $r['celular'] ?? ''),
+            ];
+            $telIgual = false;
+            foreach ($telefones as $telInput) {
+                $t9 = substr($telInput, -9);
+                foreach ($rTels as $rt) {
+                    if (strlen($rt) >= 9 && substr($rt, -9) === $t9) {
+                        $telIgual = true;
+                        break 2;
+                    }
+                }
+            }
+            if ($telIgual) {
+                $motivos[] = 'Telefone igual';
+            }
+            
+            $r['motivos'] = empty($motivos) ? ['Dados similares'] : $motivos;
+            $r['qtd_os'] = (int) $r['qtd_os'];
+        }
+
+        return $resultados;
+    }
+
     private function documentoNumericoExpr(string $field): string
     {
         return "REPLACE(REPLACE(REPLACE(REPLACE({$field}, '.', ''), '-', ''), '/', ''), ' ', '')";

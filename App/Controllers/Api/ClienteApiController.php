@@ -115,4 +115,32 @@ final class ClienteApiController
 
         return Response::json(['ok' => false, 'error' => 'Documento inválido. Informe CPF (11) ou CNPJ (14 dígitos).'], 400);
     }
+
+    /**
+     * POST /api/clientes/verificar-duplicado
+     * 
+     * Verifica possíveis clientes duplicados com base nos dados do formulário.
+     * Retorna array de sugestões.
+     */
+    public function verificarDuplicado(Request $request): Response
+    {
+        $dados = [
+            'cpf_cnpj' => $request->input('cpf_cnpj', ''),
+            'email'    => $request->input('email', ''),
+            'telefone' => $request->input('telefone', ''),
+            'telefone2'=> $request->input('telefone2', ''),
+            'celular'  => $request->input('celular', ''),
+            'fone'     => $request->input('fone', ''),
+        ];
+        
+        $ignorarId = $request->input('id');
+        $ignorarId = is_numeric($ignorarId) ? (int) $ignorarId : null;
+        
+        $duplicados = $this->repo->buscarPossiveisDuplicadosCadastro($dados, $ignorarId);
+
+        return Response::json([
+            'ok' => true,
+            'duplicados' => $duplicados
+        ]);
+    }
 }

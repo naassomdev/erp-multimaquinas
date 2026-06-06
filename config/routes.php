@@ -66,6 +66,7 @@ return [
     ['GET',  '/api/clientes/busca',      [ClienteApiController::class, 'busca'],        [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET',  '/api/clientes/cep/{cep}',  [ClienteApiController::class, 'buscarPorCep'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET',  '/api/clientes/documento/{doc}', [ClienteApiController::class, 'buscarPorDocumento'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['POST', '/api/clientes/verificar-duplicado', [ClienteApiController::class, 'verificarDuplicado'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class, CsrfMiddleware::class]],
 
     // ── Estoque / Produtos ────────────────────────────────────────────────
     ['GET',  '/estoque',                  [EstoqueController::class, 'index'],             [AuthMiddleware::class, AdminMiddleware::class]],

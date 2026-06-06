@@ -99,7 +99,14 @@ final class ClienteController
         $id = $this->repo->criar($dados);
         $this->audit->registrar('clientes', (string) $id, 'INSERT', $dados);
 
-        Flash::set('success', 'Cliente cadastrado com sucesso!');
+        // 11B-4: Verificação pós-salvamento (backend validation non-blocking)
+        $duplicados = $this->repo->buscarPossiveisDuplicadosCadastro($dados, $id);
+        if (!empty($duplicados)) {
+            Flash::set('warning', 'Cliente cadastrado com sucesso, mas existem ' . count($duplicados) . ' possíveis duplicados (verifique o cadastro).');
+        } else {
+            Flash::set('success', 'Cliente cadastrado com sucesso!');
+        }
+
         return Response::redirect('/clientes/' . $id);
     }
 
@@ -227,7 +234,14 @@ final class ClienteController
         $this->repo->atualizar((int) $id, $dados);
         $this->audit->registrar('clientes', (string) $id, 'UPDATE', $dados);
 
-        Flash::set('success', 'Cliente atualizado com sucesso!');
+        // 11B-4: Verificação pós-salvamento (backend validation non-blocking)
+        $duplicados = $this->repo->buscarPossiveisDuplicadosCadastro($dados, (int) $id);
+        if (!empty($duplicados)) {
+            Flash::set('warning', 'Cliente atualizado, mas existem ' . count($duplicados) . ' possíveis duplicados encontrados com os mesmos dados.');
+        } else {
+            Flash::set('success', 'Cliente atualizado com sucesso!');
+        }
+
         return Response::redirect('/clientes/' . $id);
     }
 

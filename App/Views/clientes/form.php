@@ -202,6 +202,16 @@ $ufAtual = strtoupper($v('uf'));
             </div>
         </div>
 
+        <!-- Alerta de Duplicidade (Invisível por padrão) -->
+        <div id="alerta-duplicidade" class="alert alert-warning d-none shadow-sm mb-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="ph ph-warning-circle fs-4 me-2"></i>
+                <h5 class="alert-heading mb-0">Possível cliente duplicado encontrado</h5>
+            </div>
+            <p id="alerta-duplicidade-texto" class="mb-2">Confira antes de salvar para evitar duplicidade que pode afetar OS, financeiro e nota fiscal.</p>
+            <div id="lista-duplicados" class="list-group list-group-flush border-top border-warning mt-2 pt-2"></div>
+        </div>
+
         <!-- Acoes -->
         <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2">
             <a href="/clientes" class="btn btn-outline-secondary">Cancelar</a>
@@ -214,6 +224,9 @@ $ufAtual = strtoupper($v('uf'));
 </div>
 
 <script>
+// -- Variáveis do Form
+const clienteIdAtual = <?= $edit ? (int)$c['id'] : 'null' ?>;
+
 // -- Busca CEP via API
 document.getElementById('btnBuscarCep')?.addEventListener('click', async () => {
     const cep = document.getElementById('cep')?.value.replace(/\D/g, '');
@@ -331,6 +344,9 @@ async function buscarDocumentoCliente({ silent = false } = {}) {
                     }
                 }
             }
+            
+            // Disparar verificação de duplicidade após auto-preencher
+            verificarDuplicidade();
         } else {
             alert(json.error || 'Documento nao encontrado.');
         }
@@ -378,6 +394,8 @@ document.getElementById('cpf_cnpj')?.addEventListener('input', function () {
             }
         }, 500);
     }
+    
+    agendarVerificacaoDuplicidade();
 });
 
 // -- Mascara de telefone
@@ -393,10 +411,13 @@ function maskPhone(el) {
             v = v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
         }
         this.value = v;
+        agendarVerificacaoDuplicidade();
     });
 }
 maskPhone(document.getElementById('telefone'));
 maskPhone(document.getElementById('celular'));
+document.querySelector('[name="telefone2"]')?.addEventListener('input', agendarVerificacaoDuplicidade);
+document.querySelector('[name="email"]')?.addEventListener('input', agendarVerificacaoDuplicidade);
 
 // -- Auto-busca CEP ao digitar 8 digitos
 document.getElementById('cep')?.addEventListener('input', function () {
@@ -408,4 +429,112 @@ document.getElementById('cep')?.addEventListener('input', function () {
         document.getElementById('btnBuscarCep')?.click();
     }
 });
+
+// -- Verificação de Duplicidade (11B-4)
+let dupTimer = null;
+const alertaDiv = document.getElementById('alerta-duplicidade');
+const listaDiv = document.getElementById('lista-duplicados');
+const textoAlerta = document.getElementById('alerta-duplicidade-texto');
+const tokenCsrf = document.querySelector('[name="_csrf"]')?.value || '';
+
+function agendarVerificacaoDuplicidade() {
+    clearTimeout(dupTimer);
+    dupTimer = setTimeout(verificarDuplicidade, 600);
+}
+
+async function verificarDuplicidade() {
+    const dados = {
+        cpf_cnpj: document.getElementById('cpf_cnpj')?.value || '',
+        email: document.querySelector('[name="email"]')?.value || '',
+        telefone: document.getElementById('telefone')?.value || '',
+        telefone2: document.querySelector('[name="telefone2"]')?.value || '',
+        celular: document.getElementById('celular')?.value || '',
+        fone: document.querySelector('[name="fone"]')?.value || '',
+        id: clienteIdAtual
+    };
+    
+    // Ignora se estiver tudo vazio ou só cpf incompleto
+    const numCpf = dados.cpf_cnpj.replace(/\D/g, '');
+    if (numCpf.length < 11 && dados.email.length < 5 && dados.telefone.length < 8 && dados.celular.length < 8 && dados.telefone2.length < 8) {
+        alertaDiv.classList.add('d-none');
+        return;
+    }
+
+    try {
+        const resp = await fetch('/api/clientes/verificar-duplicado', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(dados)
+        });
+        
+        if (!resp.ok) return; // 403 Oficina, etc
+        
+        const res = await resp.json();
+        if (res.ok && res.duplicados && res.duplicados.length > 0) {
+            exibirAlertaDuplicados(res.duplicados, dados);
+        } else {
+            alertaDiv.classList.add('d-none');
+        }
+    } catch (e) {
+        console.error('Erro na verificação de duplicidade:', e);
+    }
+}
+
+function exibirAlertaDuplicados(duplicados, dadosInput) {
+    listaDiv.replaceChildren();
+    
+    let cpfIgual = false;
+    const inputCpf = dadosInput.cpf_cnpj.replace(/\D/g, '');
+    
+    duplicados.forEach(dup => {
+        const item = document.createElement('div');
+        item.className = 'list-group-item bg-transparent px-0 border-warning border-bottom';
+        
+        const motivosHtml = dup.motivos.map(m => `<span class="badge bg-warning text-dark me-1">${m}</span>`).join('');
+        
+        if (dup.motivos.includes('CPF/CNPJ igual') && inputCpf.length > 0) {
+            cpfIgual = true;
+        }
+        
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong>#${dup.id} - ${dup.nome}</strong>
+                    <div class="text-muted small mt-1">
+                        ${dup.cpf_cnpj ? `CPF/CNPJ: ${dup.cpf_cnpj} &middot; ` : ''}
+                        ${dup.telefone ? `Tel: ${dup.telefone} &middot; ` : ''}
+                        ${dup.celular ? `Cel: ${dup.celular} &middot; ` : ''}
+                        ${dup.email ? `E-mail: ${dup.email} &middot; ` : ''}
+                        <strong>${dup.qtd_os} OS</strong>
+                    </div>
+                    <div class="mt-1">${motivosHtml}</div>
+                </div>
+                <a href="/clientes/${dup.id}" target="_blank" class="btn btn-sm btn-outline-warning">
+                    Abrir cadastro <i class="ph ph-arrow-square-out"></i>
+                </a>
+            </div>
+        `;
+        listaDiv.appendChild(item);
+    });
+    
+    if (cpfIgual) {
+        textoAlerta.innerHTML = '<strong>CPF/CNPJ já cadastrado.</strong> Revise os clientes abaixo antes de continuar. Salvar um cadastro duplicado pode gerar problemas fiscais e de histórico.';
+        alertaDiv.classList.remove('alert-warning');
+        alertaDiv.classList.add('alert-danger'); // Cor mais forte pra CPF igual
+    } else {
+        textoAlerta.innerHTML = 'Confira antes de salvar para evitar duplicidade que pode afetar OS, financeiro e nota fiscal.';
+        alertaDiv.classList.remove('alert-danger');
+        alertaDiv.classList.add('alert-warning');
+    }
+    
+    alertaDiv.classList.remove('d-none');
+}
+
+// Rodar a verificação inicial caso seja edição (mas ignora próprio ID)
+if (clienteIdAtual) {
+    setTimeout(verificarDuplicidade, 1000);
+}
 </script>
