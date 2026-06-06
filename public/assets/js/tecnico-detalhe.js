@@ -905,6 +905,27 @@
         }
     });
 
+    // ── Mensagem interna recepção <-> técnico (canal de mão dupla) ──
+    byId('btn-salvar-msg-recepcao')?.addEventListener('click', async ev => {
+        const btn = ev.currentTarget;
+        const texto = byId('msg-recepcao-texto')?.value || '';
+        const statusEl = byId('msg-recepcao-status');
+        btn.disabled = true;
+        try {
+            await api(
+                'PUT',
+                `/api/tecnico/equipamento/${encodeURIComponent(osId)}/${equipIdx}/obs-recepcao`,
+                { obs_recepcao: texto }
+            );
+            if (statusEl) { statusEl.textContent = 'Recado salvo.'; setTimeout(() => { statusEl.textContent = ''; }, 3000); }
+            toast('Recado salvo');
+        } catch (e) {
+            toast('Erro: ' + e.message, 'err');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     // ── Adicionar / remover item ──────────────────
     const formNovoItem = byId('form-novo-item');
 

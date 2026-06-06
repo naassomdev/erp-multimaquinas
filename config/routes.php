@@ -179,6 +179,7 @@ return [
     ['PATCH',  '/api/tecnico/equipamento/{os_id}/{idx}/dados',  [TecnicoApiController::class, 'atualizarDadosEquipamento'], [AuthMiddleware::class, CsrfMiddleware::class]],
     ['POST',   '/api/tecnico/equipamento/{os_id}/{idx}/verificar-montagem', [TecnicoApiController::class, 'verificarMontagem'], [AuthMiddleware::class, CsrfMiddleware::class]],
     ['PUT',    '/api/tecnico/equipamento/{os_id}/{idx}/laudo',  [TecnicoApiController::class, 'salvarLaudo'],     [AuthMiddleware::class, CsrfMiddleware::class]],
+    ['PUT',    '/api/tecnico/equipamento/{os_id}/{idx}/obs-recepcao', [TecnicoApiController::class, 'salvarObsRecepcao'], [AuthMiddleware::class, CsrfMiddleware::class]],
     ['POST',   '/api/tecnico/equipamento/{os_id}/{idx}/concluir-diagnostico', [TecnicoApiController::class, 'concluirDiagnostico'], [AuthMiddleware::class, CsrfMiddleware::class]],
     ['POST',   '/api/tecnico/equipamento/{os_id}/{idx}/itens',  [TecnicoApiController::class, 'adicionarItem'],   [AuthMiddleware::class, CsrfMiddleware::class]],
     ['POST',   '/api/tecnico/itens/{id}/solicitar-compra',       [TecnicoApiController::class, 'solicitarCompra'], [AuthMiddleware::class, CsrfMiddleware::class]],

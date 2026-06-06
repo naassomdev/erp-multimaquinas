@@ -214,7 +214,10 @@ $garantiaResumo = $emGarantia
     : 'Nao';
 $statusDesdeEm = (string) ($equip['status_equip_em'] ?? '');
 $statusDesdeFmt = $statusDesdeEm !== '' ? date('d/m/Y H:i', strtotime($statusDesdeEm)) : '';
-$observacaoRecepcao = trim((string) ($equip['obs_recepcao'] ?? $os['obs_recepcao'] ?? $os['observacao'] ?? $os['obs'] ?? ''));
+// obs_recepcao do equipamento é exibido/editado no bloco dedicado "Mensagem da recepção"
+// (logo abaixo dos cards), para não duplicar com este slot da observação geral da OS.
+$observacaoRecepcao = trim((string) ($os['obs_recepcao'] ?? $os['observacao'] ?? $os['obs'] ?? ''));
+$mensagemRecepcao = trim((string) ($equip['obs_recepcao'] ?? ''));
 $prazoResumo = trim((string) ($os['prazo'] ?? $os['prazo_entrega'] ?? $os['data_conclusao'] ?? ''));
 $situacaoComercialLabel = $orcStatus !== '' ? $orcStatus : 'sem orçamento';
 $metadadosEquipamento = [];
@@ -307,6 +310,25 @@ $resumoAndamento = [
         <?php include __DIR__ . '/partials/_cliente_solicitacao_card.php'; ?>
 
         <?php include __DIR__ . '/partials/_andamento_os_card.php'; ?>
+    </section>
+
+    <!-- Mensagem interna recepção <-> técnico (canal de mão dupla; não sai no orçamento) -->
+    <section class="card shadow-sm border-warning-subtle mb-3" id="msg-recepcao-bloco">
+        <div class="card-header bg-warning-subtle text-warning-emphasis d-flex align-items-center gap-2">
+            <i class="ph ph-chats-circle"></i>
+            <strong>Mensagem da recepção</strong>
+            <span class="small text-body-secondary ms-1">— recado interno, não sai no orçamento</span>
+        </div>
+        <div class="card-body">
+            <textarea id="msg-recepcao-texto" class="form-control" rows="3"
+                      placeholder="Recado interno entre recepção e técnico..."><?= View::e($mensagemRecepcao) ?></textarea>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <button type="button" class="btn btn-sm btn-warning" id="btn-salvar-msg-recepcao">
+                    <i class="ph ph-floppy-disk me-1"></i> Salvar recado
+                </button>
+                <span class="small text-body-secondary" id="msg-recepcao-status"></span>
+            </div>
+        </div>
     </section>
 
     <div class="tecnico-shell">

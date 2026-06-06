@@ -62,7 +62,7 @@ final class OrcamentoRepository
                        os.contato_nome, os.contato_telefone,
                        os.data_entrada, os.status AS os_status, os.cliente_id,
                        eq.nome AS equip_nome, eq.fabricante, eq.modelo, eq.serie,
-                       eq.voltagem, eq.defeito, eq.obs_cli, eq.obs_int, eq.status_equip,
+                       eq.voltagem, eq.defeito, eq.obs_cli, eq.obs_int, eq.obs_recepcao, eq.status_equip,
                        eq.em_garantia, eq.tipo_garantia, eq.garantia_autorizacao,
                        c.nome       AS cli_nome,
                        c.nome_fantasia AS cli_fantasia,

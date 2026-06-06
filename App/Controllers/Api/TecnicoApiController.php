@@ -330,6 +330,26 @@ final class TecnicoApiController
         return Response::json(['ok' => true]);
     }
 
+    /**
+     * Mensagem interna recepção <-> técnico por equipamento (canal de mão dupla).
+     * Campo próprio (obs_recepcao), isolado do laudo e da observação ao cliente.
+     * Qualquer usuário autenticado com acesso ao equipamento pode registrar.
+     */
+    public function salvarObsRecepcao(Request $request, string $os_id, string $idx): Response
+    {
+        $equipIdx = (int) $idx;
+
+        $equip = $this->equipRepo->buscar($os_id, $equipIdx);
+        if ($equip === null) {
+            return Response::json(['ok' => false, 'error' => 'Equipamento não encontrado'], 404);
+        }
+
+        $texto = (string) $request->input('obs_recepcao', '');
+        $this->equipRepo->atualizarObsRecepcao($os_id, $equipIdx, $texto);
+
+        return Response::json(['ok' => true]);
+    }
+
     public function concluirDiagnostico(Request $request, string $os_id, string $idx): Response
     {
         if (!Auth::temNivel('admin', 'oficina')) {

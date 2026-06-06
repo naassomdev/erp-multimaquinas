@@ -810,6 +810,30 @@
             abrirModalPecasCliente(card);
         });
 
+        // Mensagem interna recepção -> técnico (canal próprio, endpoint dedicado)
+        card.querySelector('[data-role=salvar-obs-recepcao]')?.addEventListener('click', async (ev) => {
+            const btn = ev.currentTarget;
+            const ta  = card.querySelector('textarea[name=obs_recepcao]');
+            if (!ta) return;
+            const statusEl = card.querySelector('[data-role=obs-recepcao-status]');
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Salvando...';
+            try {
+                await api(
+                    'PUT',
+                    `/api/tecnico/equipamento/${encodeURIComponent(card.dataset.osId)}/${encodeURIComponent(card.dataset.equipIdx)}/obs-recepcao`,
+                    { obs_recepcao: ta.value }
+                );
+                if (statusEl) { statusEl.textContent = 'Recado salvo.'; setTimeout(() => { statusEl.textContent = ''; }, 3000); }
+            } catch (e) {
+                if (statusEl) statusEl.textContent = 'Erro: ' + e.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        });
+
         card.querySelector('[data-role=reverter-cancelamento]')?.addEventListener('click', (ev) => {
             abrirModalReverterCancelamento(card, ev.currentTarget);
         });

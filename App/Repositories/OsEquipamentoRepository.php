@@ -65,7 +65,7 @@ final class OsEquipamentoRepository
     {
         $sql = "SELECT id, os_id, ordem_idx, nome, fabricante, modelo, serie, defeito, voltagem, cx,
                        status_equip, status_equip_em, diagnostico_concluido_em, diagnostico_concluido_por,
-                       vista_explodida, obs_int, obs_cli,
+                       vista_explodida, obs_int, obs_cli, obs_recepcao,
                        pecas_json, fotos_os_json, fotos_json,
                        em_garantia, tipo_garantia, garantia_autorizacao,
                        descarte_autorizado_em, descarte_autorizado_por,
@@ -85,7 +85,7 @@ final class OsEquipamentoRepository
     {
         $sql = "SELECT id, os_id, ordem_idx, nome, fabricante, modelo, serie, defeito, voltagem, cx,
                        status_equip, diagnostico_concluido_em, diagnostico_concluido_por,
-                       em_garantia, tipo_garantia, garantia_autorizacao, obs_int, obs_cli
+                       em_garantia, tipo_garantia, garantia_autorizacao, obs_int, obs_cli, obs_recepcao
                   FROM os_equipamento
                  WHERE os_id = :os
                  ORDER BY ordem_idx ASC
@@ -107,7 +107,7 @@ final class OsEquipamentoRepository
         $sql = "SELECT e.id, e.os_id, e.ordem_idx, e.nome, e.fabricante, e.modelo,
                        e.serie, e.defeito, e.voltagem, e.cx,
                        e.status_equip, e.diagnostico_concluido_em, e.diagnostico_concluido_por,
-                       e.em_garantia, e.tipo_garantia, e.garantia_autorizacao, e.obs_int, e.obs_cli,
+                       e.em_garantia, e.tipo_garantia, e.garantia_autorizacao, e.obs_int, e.obs_cli, e.obs_recepcao,
                        e.fotos_json,
                        e.descarte_autorizado_em, e.descarte_autorizado_por, e.descarte_meio,
                        e.devolucao_em,
@@ -165,6 +165,20 @@ final class OsEquipamentoRepository
             ':os'      => $osId,
             ':idx'     => $equipIdx,
         ]);
+    }
+
+    /**
+     * Mensagem interna recepção <-> técnico (campo próprio, isolado do laudo
+     * obs_int e da observação ao cliente obs_cli). Endpoint dedicado para que
+     * um lado nunca sobrescreva os campos do outro.
+     */
+    public function atualizarObsRecepcao(string $osId, int $equipIdx, string $texto): void
+    {
+        $sql = "UPDATE os_equipamento
+                   SET obs_recepcao = :txt
+                 WHERE os_id = :os AND ordem_idx = :idx";
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute([':txt' => $texto, ':os' => $osId, ':idx' => $equipIdx]);
     }
 
     public function atualizarNome(string $osId, int $equipIdx, string $nome): void

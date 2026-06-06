@@ -1016,6 +1016,29 @@ $activePanelId = !empty($equipCards) ? 'equip-' . $equipCards[0]['idx'] : '';
                                 </div>
                             </div>
 
+                            <!-- Mensagem interna recepção <-> técnico (uso interno; NAO sai no orçamento) -->
+                            <div class="orcamento-admin-card mt-3" data-role="obs-recepcao-card">
+                                <div class="orcamento-admin-card__header">
+                                    <div>
+                                        <span class="orcamento-admin-card__eyebrow">Uso interno — não sai no orçamento</span>
+                                        <h6 class="orcamento-admin-card__title mb-0">Mensagem para o técnico</h6>
+                                    </div>
+                                </div>
+
+                                <label class="form-label small fw-semibold mb-2" for="obs-recepcao-<?= $idx ?>">Recado interno (visível ao técnico no painel — canal de mão dupla)</label>
+                                <textarea id="obs-recepcao-<?= $idx ?>"
+                                          name="obs_recepcao"
+                                          rows="4"
+                                          class="form-control orcamento-admin-textarea"
+                                          placeholder="Ex.: cliente pediu para revisar o cabo; usar peça X; etc."><?= View::e((string) ($equip['obs_recepcao'] ?? '')) ?></textarea>
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-role="salvar-obs-recepcao">
+                                        <i class="ph ph-paper-plane-tilt me-1"></i> Salvar recado
+                                    </button>
+                                    <span class="small text-body-secondary" data-role="obs-recepcao-status"></span>
+                                </div>
+                            </div>
+
                             <?php
                             // ── 9J-1: Motivo da gratuidade ──────────────────────────────────────
                             $motivoGratuidade    = $card['motivo_gratuidade'];
