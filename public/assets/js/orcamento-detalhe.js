@@ -1363,6 +1363,21 @@
             leftDiv.appendChild(descSpan);
             if (metaParts.length) leftDiv.appendChild(metaSpan);
 
+            // Fase 4 (paridade c/ técnico): item encontrado por código ANTIGO/alternativo.
+            if (prod.via_codigo_alternativo) {
+                const viaLabel = {
+                    antigo: 'código antigo',
+                    fornecedor: 'código do fornecedor',
+                    fabricante: 'código do fabricante',
+                    outro: 'código alternativo',
+                };
+                const viaSpan = document.createElement('span');
+                viaSpan.style.cssText = 'font-size:.7rem;color:var(--bs-warning-text-emphasis);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+                viaSpan.textContent = '↳ ' + (viaLabel[prod.via_codigo_tipo] || 'código alternativo') +
+                    ' ' + prod.via_codigo_alternativo + ' → atual ' + prod.codigo;
+                leftDiv.appendChild(viaSpan);
+            }
+
             // Coluna direita: preço + estoque (só para não bloqueados)
             const rightDiv = document.createElement('div');
             rightDiv.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:.05rem;flex-shrink:0;';
