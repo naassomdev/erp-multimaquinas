@@ -98,6 +98,23 @@ final class ProdutoRepository
               LIMIT 1'
         );
         $stmt->execute([':codigo' => $codigo]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row !== false) {
+            return $row;
+        }
+
+        // Fallback: o código digitado pode ser um código ANTIGO/alternativo.
+        // Resolve para o produto ATUAL, sinalizando via_codigo_alternativo.
+        $stmt = Database::pdo()->prepare(
+            'SELECT ' . self::colsComPrefixo('p') . ",
+                    pc.codigo AS via_codigo_alternativo,
+                    pc.tipo   AS via_codigo_tipo
+               FROM produto_codigos pc
+               JOIN produtos p ON p.id = pc.produto_id AND p.ativo = 1
+              WHERE pc.codigo = :codigo
+              LIMIT 1"
+        );
+        $stmt->execute([':codigo' => $codigo]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
@@ -111,6 +128,22 @@ final class ProdutoRepository
      * @param string $mode  'codigo' | 'descricao' | 'geral'
      */
     private function buscarInteligente(string $query, string $mode, int $limit): array
+    {
+        $rows = $this->buscarNasCamadas($query, $mode, $limit);
+
+        // Códigos antigos/alternativos: aplica-se à busca por código e à geral.
+        // (No modo 'descricao' não faz sentido resolver por código alternativo.)
+        if ($mode === 'codigo' || $mode === 'geral') {
+            $rows = $this->mesclarCodigosAlternativos($rows, $query, $limit);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Orquestra as três camadas de busca em `produtos`.
+     */
+    private function buscarNasCamadas(string $query, string $mode, int $limit): array
     {
         $tokens = $this->tokenizar($query);
 
@@ -129,6 +162,56 @@ final class ProdutoRepository
 
         // Camada 3: LIKE simples (fallback final)
         return $this->buscarLikeSimples($query, $mode, $limit);
+    }
+
+    /**
+     * Mescla, sem duplicar, os produtos cujo CÓDIGO ANTIGO/alternativo casa
+     * com a query. Produtos já achados pelo código atual têm prioridade; os
+     * resolvidos via código alternativo são anexados ao final, marcados com
+     * via_codigo_alternativo / via_codigo_tipo.
+     */
+    private function mesclarCodigosAlternativos(array $rows, string $query, int $limit): array
+    {
+        $query = trim($query);
+        if ($query === '') return $rows;
+
+        $alternativos = $this->buscarPorCodigoAlternativo($query, $limit);
+        if (empty($alternativos)) return $rows;
+
+        $idsPresentes = array_flip(array_column($rows, 'id'));
+        foreach ($alternativos as $alt) {
+            if (!isset($idsPresentes[$alt['id']])) {
+                $rows[] = $alt;
+                $idsPresentes[$alt['id']] = true;
+            }
+        }
+
+        return array_slice($rows, 0, $limit);
+    }
+
+    /**
+     * Busca produtos cujo código antigo/alternativo casa com a query
+     * (igualdade exata primeiro, depois prefixo). Retorna o produto ATUAL,
+     * marcado com o código alternativo que casou.
+     */
+    private function buscarPorCodigoAlternativo(string $query, int $limit): array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT ' . self::colsComPrefixo('p') . ",
+                    pc.codigo AS via_codigo_alternativo,
+                    pc.tipo   AS via_codigo_tipo
+               FROM produto_codigos pc
+               JOIN produtos p ON p.id = pc.produto_id AND p.ativo = 1
+              WHERE pc.codigo = :exato OR pc.codigo LIKE :prefix
+              ORDER BY (pc.codigo = :exato2) DESC, p.codigo ASC
+              LIMIT :lim"
+        );
+        $stmt->bindValue(':exato',  $query);
+        $stmt->bindValue(':exato2', $query);
+        $stmt->bindValue(':prefix', $query . '%');
+        $stmt->bindValue(':lim',    $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -387,6 +470,17 @@ final class ProdutoRepository
     // ──────────────────────────────────────────────────────────────────
     // Utilitário: tokenização
     // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Lista de colunas de `produtos` (self::COLS) qualificada com um alias.
+     * Ex.: colsComPrefixo('p') => 'p.id, p.codigo, p.descricao, ...'
+     * Usada quando a query faz JOIN com produto_codigos.
+     */
+    private static function colsComPrefixo(string $alias): string
+    {
+        $cols = array_map('trim', explode(',', self::COLS));
+        return implode(', ', array_map(static fn(string $c) => $alias . '.' . $c, $cols));
+    }
 
     /**
      * Divide a query em tokens normalizados:
