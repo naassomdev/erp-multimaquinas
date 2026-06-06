@@ -133,6 +133,102 @@ final class ProdutoFullRepository
         $stmt->execute($params);
     }
 
+    // ──────────────────────────────────────────────────────────────────
+    // Códigos antigos / alternativos (tabela produto_codigos)
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Lista os códigos antigos/alternativos de um produto (para edição).
+     */
+    public function listarCodigosAlternativos(int $produtoId): array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT id, codigo, tipo, fornecedor_id, observacao
+               FROM produto_codigos
+              WHERE produto_id = ?
+              ORDER BY codigo ASC'
+        );
+        $stmt->execute([$produtoId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Unicidade CRUZADA de um código alternativo (duas tabelas — não dá para
+     * impor só com UNIQUE). Retorna uma frase descrevendo o conflito, ou null
+     * se o código estiver livre.
+     *
+     * @param int $produtoIdAtual produto dono — ignora os alternativos dele mesmo.
+     */
+    public function conflitoDeCodigo(string $codigo, int $produtoIdAtual): ?string
+    {
+        $codigo = trim($codigo);
+        if ($codigo === '') return null;
+
+        // 1. Colide com o código PRINCIPAL de algum produto?
+        $stmt = Database::pdo()->prepare(
+            'SELECT id, descricao FROM produtos WHERE codigo = ? LIMIT 1'
+        );
+        $stmt->execute([$codigo]);
+        $p = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($p !== false) {
+            return 'já é o código principal do produto #' . $p['id'] . ' (' . $p['descricao'] . ')';
+        }
+
+        // 2. Colide com o alternativo de OUTRO produto?
+        $stmt = Database::pdo()->prepare(
+            'SELECT produto_id FROM produto_codigos WHERE codigo = ? AND produto_id <> ? LIMIT 1'
+        );
+        $stmt->execute([$codigo, $produtoIdAtual]);
+        $a = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($a !== false) {
+            return 'já é código alternativo do produto #' . $a['produto_id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Substitui o conjunto de códigos alternativos de um produto (delete-all +
+     * reinsert, em transação). Assume que os códigos já foram validados via
+     * conflitoDeCodigo() na camada de aplicação.
+     *
+     * @param array $codigos lista de ['codigo','tipo','fornecedor_id','observacao']
+     */
+    public function sincronizarCodigosAlternativos(int $produtoId, array $codigos): void
+    {
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('DELETE FROM produto_codigos WHERE produto_id = ?')->execute([$produtoId]);
+
+            if (!empty($codigos)) {
+                $ins = $pdo->prepare(
+                    'INSERT INTO produto_codigos (produto_id, codigo, tipo, fornecedor_id, observacao)
+                     VALUES (:pid, :codigo, :tipo, :fornecedor_id, :obs)'
+                );
+                $tiposValidos = ['antigo', 'fornecedor', 'fabricante', 'outro'];
+                foreach ($codigos as $c) {
+                    $codigo = trim((string) ($c['codigo'] ?? ''));
+                    if ($codigo === '') continue;
+                    $tipo = in_array($c['tipo'] ?? '', $tiposValidos, true) ? $c['tipo'] : 'antigo';
+                    $forn = (int) ($c['fornecedor_id'] ?? 0);
+                    $ins->execute([
+                        ':pid'           => $produtoId,
+                        ':codigo'        => $codigo,
+                        ':tipo'          => $tipo,
+                        ':fornecedor_id' => $forn > 0 ? $forn : null,
+                        ':obs'           => trim((string) ($c['observacao'] ?? '')),
+                    ]);
+                }
+            }
+
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
+
     /**
      * Exclui (desativa) um produto.
      */

@@ -21,6 +21,14 @@ $v = function(string $campo, $default = '') use ($p, $edit): string {
 
 $unidades = ['un' => 'Unidade (un)', 'pc' => 'Peca (pc)', 'cx' => 'Caixa (cx)', 'kg' => 'Quilograma (kg)', 'mt' => 'Metro (mt)', 'lt' => 'Litro (lt)', 'rl' => 'Rolo (rl)', 'jg' => 'Jogo (jg)'];
 $unAtual = $v('unidade', 'un');
+
+// Codigos antigos / alternativos: prioriza o que o usuario digitou (apos erro
+// de validacao), senao usa o que veio do banco na edicao.
+$tiposCodigo = ['antigo' => 'Codigo antigo', 'fornecedor' => 'Codigo do fornecedor', 'fabricante' => 'Codigo do fabricante', 'outro' => 'Outro'];
+$codigosAlt = \App\Core\Flash::oldRaw('codigos_alt');
+if (!is_array($codigosAlt)) {
+    $codigosAlt = $codigos_alt ?? [];
+}
 ?>
 
 <div class="d-flex flex-column gap-4">
@@ -168,6 +176,53 @@ $unAtual = $v('unidade', 'un');
             </div>
         </div>
 
+        <!-- Codigos antigos / alternativos -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="ph ph-arrows-merge"></i> Codigos antigos / alternativos</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-codigo">
+                    <i class="ph ph-plus me-1"></i> Adicionar codigo
+                </button>
+            </div>
+            <div class="card-body">
+                <p class="form-text mt-0 mb-3">
+                    Registre codigos <strong>antigos</strong> ou de <strong>fornecedor</strong> que apontam para este mesmo produto.
+                    Quando o tecnico digitar um desses codigos na busca, o sistema traz este produto.
+                    O codigo atual continua sendo o <strong>Codigo Interno</strong> la em cima.
+                </p>
+
+                <div id="codigos-alt-list" class="d-flex flex-column gap-2">
+                    <?php foreach ($codigosAlt as $i => $ca): ?>
+                    <div class="row g-2 align-items-end codigo-alt-row">
+                        <div class="col-md-3">
+                            <label class="form-label small mb-1">Codigo</label>
+                            <input type="text" name="codigos_alt[<?= (int)$i ?>][codigo]" value="<?= View::e((string)($ca['codigo'] ?? '')) ?>" class="form-control form-control-sm text-mono" placeholder="Ex: 334668-1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small mb-1">Tipo</label>
+                            <select name="codigos_alt[<?= (int)$i ?>][tipo]" class="form-select form-select-sm">
+                                <?php foreach ($tiposCodigo as $tk => $tl): ?>
+                                <option value="<?= $tk ?>" <?= (($ca['tipo'] ?? 'antigo') === $tk) ? 'selected' : '' ?>><?= $tl ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small mb-1">Observacao (ex.: fornecedor)</label>
+                            <input type="text" name="codigos_alt[<?= (int)$i ?>][observacao]" value="<?= View::e((string)($ca['observacao'] ?? '')) ?>" class="form-control form-control-sm" placeholder="Opcional">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger w-100 btn-remove-codigo" title="Remover"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div id="codigos-alt-vazio" class="text-body-secondary small <?= empty($codigosAlt) ? '' : 'd-none' ?>">
+                    Nenhum codigo alternativo cadastrado.
+                </div>
+            </div>
+        </div>
+
         <!-- Acoes -->
         <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2">
             <a href="<?= View::e($returnUrl) ?>" class="btn btn-outline-secondary">Cancelar</a>
@@ -203,4 +258,41 @@ function calcularMargem() {
 custoEl?.addEventListener('input', calcularVenda);
 margemEl?.addEventListener('input', calcularVenda);
 vendaEl?.addEventListener('input', calcularMargem);
+
+// Codigos antigos / alternativos: linhas dinamicas
+(function () {
+    const list   = document.getElementById('codigos-alt-list');
+    const addBtn = document.getElementById('btn-add-codigo');
+    const vazio  = document.getElementById('codigos-alt-vazio');
+    if (!list || !addBtn) return;
+
+    let idx = <?= count($codigosAlt) ?>;
+    const tipos = <?= json_encode($tiposCodigo, JSON_UNESCAPED_UNICODE) ?>;
+
+    function rowHtml(i) {
+        let opts = '';
+        for (const k in tipos) opts += `<option value="${k}">${tipos[k]}</option>`;
+        return `<div class="row g-2 align-items-end codigo-alt-row">
+            <div class="col-md-3"><label class="form-label small mb-1">Codigo</label>
+              <input type="text" name="codigos_alt[${i}][codigo]" class="form-control form-control-sm text-mono" placeholder="Ex: 334668-1"></div>
+            <div class="col-md-3"><label class="form-label small mb-1">Tipo</label>
+              <select name="codigos_alt[${i}][tipo]" class="form-select form-select-sm">${opts}</select></div>
+            <div class="col-md-5"><label class="form-label small mb-1">Observacao (ex.: fornecedor)</label>
+              <input type="text" name="codigos_alt[${i}][observacao]" class="form-control form-control-sm" placeholder="Opcional"></div>
+            <div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger w-100 btn-remove-codigo" title="Remover"><i class="ph ph-trash"></i></button></div>
+        </div>`;
+    }
+
+    addBtn.addEventListener('click', function () {
+        list.insertAdjacentHTML('beforeend', rowHtml(idx++));
+        vazio?.classList.add('d-none');
+    });
+
+    list.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-remove-codigo');
+        if (!btn) return;
+        btn.closest('.codigo-alt-row')?.remove();
+        if (list.querySelectorAll('.codigo-alt-row').length === 0) vazio?.classList.remove('d-none');
+    });
+})();
 </script>

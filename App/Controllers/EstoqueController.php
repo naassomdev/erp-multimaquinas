@@ -158,11 +158,12 @@ final class EstoqueController
     public function criar(Request $request): Response
     {
         return Response::html(View::render('estoque/form', [
-            'titulo'     => 'Novo Produto',
-            'activeMenu' => 'estoque',
-            'produto'    => null,
-            'csrf_token' => Csrf::token(),
-            'modo'       => 'criar',
+            'titulo'      => 'Novo Produto',
+            'activeMenu'  => 'estoque',
+            'produto'     => null,
+            'csrf_token'  => Csrf::token(),
+            'modo'        => 'criar',
+            'codigos_alt' => [],
         ]));
     }
 
@@ -178,11 +179,12 @@ final class EstoqueController
 
         $dados = $this->extrairDados($request);
         $this->service->recalcularPrecos($dados);
+        $codigosAlt = $this->extrairCodigosAlternativos($request);
 
         // Validação
         if (trim($dados['descricao']) === '') {
             Flash::set('error', 'O campo Descrição é obrigatório.');
-            Flash::keepOld($dados);
+            Flash::keepOld($dados + ['codigos_alt' => $codigosAlt]);
             return Response::redirect('/estoque/novo');
         }
 
@@ -190,11 +192,20 @@ final class EstoqueController
         $codigo = trim($dados['codigo'] ?? '');
         if ($codigo !== '' && $this->repo->buscarPorCodigo($codigo) !== null) {
             Flash::set('error', 'Já existe um produto com este código.');
-            Flash::keepOld($dados);
+            Flash::keepOld($dados + ['codigos_alt' => $codigosAlt]);
+            return Response::redirect('/estoque/novo');
+        }
+
+        // Validar códigos antigos/alternativos (unicidade cruzada)
+        $erroCodigos = $this->validarCodigosAlternativos($codigosAlt, $codigo, 0);
+        if ($erroCodigos !== null) {
+            Flash::set('error', $erroCodigos);
+            Flash::keepOld($dados + ['codigos_alt' => $codigosAlt]);
             return Response::redirect('/estoque/novo');
         }
 
         $id = $this->repo->criar($dados);
+        $this->repo->sincronizarCodigosAlternativos($id, $codigosAlt);
         $this->audit->registrar('produtos', (string) $id, 'INSERT', $dados);
 
         Flash::set('success', 'Produto cadastrado com sucesso!');
@@ -230,12 +241,13 @@ final class EstoqueController
         }
 
         return Response::html(View::render('estoque/form', [
-            'titulo'     => 'Editar Produto — ' . $produto['descricao'],
-            'activeMenu' => 'estoque',
-            'produto'    => $produto,
-            'csrf_token' => Csrf::token(),
-            'modo'       => 'editar',
-            'return_url' => $this->safeEstoqueReturnUrl($request),
+            'titulo'      => 'Editar Produto — ' . $produto['descricao'],
+            'activeMenu'  => 'estoque',
+            'produto'     => $produto,
+            'csrf_token'  => Csrf::token(),
+            'modo'        => 'editar',
+            'return_url'  => $this->safeEstoqueReturnUrl($request),
+            'codigos_alt' => $this->repo->listarCodigosAlternativos((int) $id),
         ]));
     }
 
@@ -257,10 +269,11 @@ final class EstoqueController
 
         $dados = $this->extrairDados($request);
         $this->service->recalcularPrecos($dados);
+        $codigosAlt = $this->extrairCodigosAlternativos($request);
 
         if (trim($dados['descricao']) === '') {
             Flash::set('error', 'O campo Descrição é obrigatório.');
-            Flash::keepOld($dados);
+            Flash::keepOld($dados + ['codigos_alt' => $codigosAlt]);
             return Response::redirect($this->withReturnUrl("/estoque/{$id}/editar", $returnUrl));
         }
 
@@ -270,12 +283,21 @@ final class EstoqueController
             $existente = $this->repo->buscarPorCodigo($codigo);
             if ($existente !== null && (int) $existente['id'] !== (int) $id) {
                 Flash::set('error', 'Já existe outro produto com este código.');
-                Flash::keepOld($dados);
+                Flash::keepOld($dados + ['codigos_alt' => $codigosAlt]);
                 return Response::redirect($this->withReturnUrl("/estoque/{$id}/editar", $returnUrl));
             }
         }
 
+        // Validar códigos antigos/alternativos (unicidade cruzada)
+        $erroCodigos = $this->validarCodigosAlternativos($codigosAlt, $codigo, (int) $id);
+        if ($erroCodigos !== null) {
+            Flash::set('error', $erroCodigos);
+            Flash::keepOld($dados + ['codigos_alt' => $codigosAlt]);
+            return Response::redirect($this->withReturnUrl("/estoque/{$id}/editar", $returnUrl));
+        }
+
         $this->repo->atualizar((int) $id, $dados);
+        $this->repo->sincronizarCodigosAlternativos((int) $id, $codigosAlt);
         $this->audit->registrar('produtos', (string) $id, 'UPDATE', $dados);
 
         Flash::set('success', 'Produto atualizado com sucesso!');
@@ -480,6 +502,63 @@ final class EstoqueController
             'ativo'                => (int) $request->input('ativo', 1),
             'controla_estoque'     => (int) $request->input('controla_estoque', 1),
         ];
+    }
+
+    /**
+     * Extrai a lista de códigos antigos/alternativos do POST.
+     * Ignora linhas sem código preenchido.
+     */
+    private function extrairCodigosAlternativos(Request $request): array
+    {
+        $in = $request->input('codigos_alt', []);
+        if (!is_array($in)) return [];
+
+        $out = [];
+        foreach ($in as $row) {
+            if (!is_array($row)) continue;
+            $cod = trim((string) ($row['codigo'] ?? ''));
+            if ($cod === '') continue;
+            $out[] = [
+                'codigo'        => $cod,
+                'tipo'          => (string) ($row['tipo'] ?? 'antigo'),
+                'fornecedor_id' => (int) ($row['fornecedor_id'] ?? 0),
+                'observacao'    => trim((string) ($row['observacao'] ?? '')),
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Valida a lista de códigos alternativos: sem repetições, diferente do
+     * código principal e sem colisão (cross-table) com outro produto.
+     * Retorna a 1ª mensagem de erro, ou null se tudo válido.
+     */
+    private function validarCodigosAlternativos(array $codigos, string $codigoPrincipal, int $produtoId): ?string
+    {
+        $codigoPrincipal = trim($codigoPrincipal);
+        $vistos = [];
+
+        foreach ($codigos as $c) {
+            $cod = trim((string) ($c['codigo'] ?? ''));
+            if ($cod === '') continue;
+
+            if ($codigoPrincipal !== '' && strcasecmp($cod, $codigoPrincipal) === 0) {
+                return "O código alternativo \"{$cod}\" é igual ao código principal do produto.";
+            }
+
+            $key = mb_strtolower($cod);
+            if (isset($vistos[$key])) {
+                return "O código alternativo \"{$cod}\" está repetido na lista.";
+            }
+            $vistos[$key] = true;
+
+            $conflito = $this->repo->conflitoDeCodigo($cod, $produtoId);
+            if ($conflito !== null) {
+                return "O código alternativo \"{$cod}\" {$conflito}.";
+            }
+        }
+
+        return null;
     }
 
     /**
