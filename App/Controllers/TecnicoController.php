@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Core\Csrf;
+use App\Core\Database;
 use App\Core\Flash;
 use App\Core\HttpException;
 use App\Core\Request;
@@ -199,6 +200,77 @@ final class TecnicoController
         }
 
         return Response::redirect('/tecnico/catalogo-fontes');
+    }
+
+    public function configuracoesSistema(Request $request): Response
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->query(
+            "SELECT chave, valor FROM configuracoes
+             WHERE chave IN ('alerta_dias_os_sem_diagnostico')
+             ORDER BY chave"
+        );
+
+        $configs = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $configs[(string) $row['chave']] = (string) $row['valor'];
+        }
+
+        return Response::html(View::render('tecnico/configuracoes_sistema', [
+            'titulo'     => 'Configurações do Sistema',
+            'activeMenu' => 'tecnico',
+            'usuario'    => Auth::user(),
+            'configs'    => $configs,
+            'csrf_token' => Csrf::token(),
+        ]));
+    }
+
+    public function salvarConfiguracoesSistema(Request $request): Response
+    {
+        if (!Csrf::check((string) $request->input('_csrf', ''))) {
+            Flash::set('error', 'Sessão expirada. Tente novamente.');
+            return Response::redirect('/tecnico/configuracoes-sistema');
+        }
+
+        $allowed = [
+            'alerta_dias_os_sem_diagnostico' => 'inteiro_positivo',
+        ];
+
+        $pdo = Database::pdo();
+
+        try {
+            foreach ($allowed as $chave => $tipo) {
+                $raw = $request->input($chave);
+                if ($raw === null) {
+                    continue;
+                }
+
+                $valor = match ($tipo) {
+                    'inteiro_positivo' => (string) max(1, (int) $raw),
+                    default            => trim((string) $raw),
+                };
+
+                $stmt = $pdo->prepare(
+                    "INSERT INTO configuracoes (chave, valor)
+                     VALUES (:chave, :valor)
+                     ON DUPLICATE KEY UPDATE valor = :valor2"
+                );
+                $stmt->execute([
+                    ':chave'  => $chave,
+                    ':valor'  => $valor,
+                    ':valor2' => $valor,
+                ]);
+            }
+
+            $this->audit->registrar('configuracoes', 'sistema', 'UPDATE', [
+                'escopo' => 'configuracoes_sistema',
+            ]);
+            Flash::set('success', 'Configurações salvas com sucesso.');
+        } catch (\Throwable $e) {
+            Flash::set('error', 'Erro ao salvar: ' . $e->getMessage());
+        }
+
+        return Response::redirect('/tecnico/configuracoes-sistema');
     }
 
     private function normalizarStatus(string $status): string

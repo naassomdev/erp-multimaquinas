@@ -167,6 +167,8 @@ return [
     ['GET',  '/tecnico',                                    [TecnicoController::class, 'index'],   [AuthMiddleware::class]],
     ['GET',  '/tecnico/catalogo-fontes',                    [TecnicoController::class, 'configuracaoCatalogo'], [AuthMiddleware::class, AdminMiddleware::class]],
     ['POST', '/tecnico/catalogo-fontes',                    [TecnicoController::class, 'salvarConfiguracaoCatalogo'], [AuthMiddleware::class, AdminMiddleware::class]],
+    ['GET',  '/tecnico/configuracoes-sistema',              [TecnicoController::class, 'configuracoesSistema'],       [AuthMiddleware::class, AdminMiddleware::class]],
+    ['POST', '/tecnico/configuracoes-sistema',              [TecnicoController::class, 'salvarConfiguracoesSistema'], [AuthMiddleware::class, AdminMiddleware::class]],
     ['GET',  '/tecnico/os/{os_id}/equipamento/{idx}',       [TecnicoController::class, 'detalhe'], [AuthMiddleware::class]],
 
     // ── API: técnico — leitura ────────────────────────────────────────
