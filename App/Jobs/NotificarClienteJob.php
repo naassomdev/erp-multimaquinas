@@ -68,6 +68,21 @@ final class NotificarClienteJob
 
     private function enviarWhatsapp(string $telefone, string $mensagem): bool
     {
+        // Safety gate: desligado até a Evolution API estar ativa e a VPS atualizada.
+        $enabled = filter_var(getenv('WHATSAPP_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var(getenv('WHATSAPP_DRY_RUN') ?: 'true', FILTER_VALIDATE_BOOLEAN);
+        $timeout = max(1, (int)(getenv('WHATSAPP_TIMEOUT') ?: 3));
+
+        if (!$enabled) {
+            error_log("[WhatsApp][DISABLED] Para: {$telefone} | Msg: " . substr($mensagem, 0, 80));
+            return false;
+        }
+
+        if ($dryRun) {
+            error_log("[WhatsApp][DRY-RUN] Para: {$telefone} | Msg: " . substr($mensagem, 0, 80));
+            return true;
+        }
+
         $url      = (string)(getenv('WHATSAPP_API_URL') ?: '');
         $apiKey   = (string)(getenv('WHATSAPP_API_KEY') ?: '');
         $instance = (string)(getenv('WHATSAPP_INSTANCE') ?: '');
@@ -90,7 +105,7 @@ final class NotificarClienteJob
         $ch = curl_init($endpoint);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => $timeout,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $body,
             CURLOPT_HTTPHEADER     => [
