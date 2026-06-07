@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Core\Auth;
 use App\Core\Database;
 use App\Helpers\ClienteHelper;
+use App\Jobs\NotificarClienteJob;
 use App\Repositories\NecessidadeCompraRepository;
 use App\Repositories\NotificacaoTecnicoRepository;
 use App\Repositories\OrcamentoRepository;
@@ -241,6 +242,7 @@ final class OrcamentoService
                     ? 'Orçamento aprovado — iniciar montagem/conserto.'
                     : 'Orçamento aprovado — verificar estoque/peças antes de montar.'
             );
+            $this->notificarClienteAprovacao((int) $id, $orcAntes);
         }
 
         // Quando o orçamento muda para "cancelado", reflete imediatamente no equipamento
@@ -1252,6 +1254,39 @@ final class OrcamentoService
             $this->notifRepo->criar($osId, $equipIdx, $tipo, $mensagem);
         } catch (Throwable $e) {
             error_log("[OrcamentoService] notificarTecnico({$osId}#{$equipIdx}, {$tipo}) falhou: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifica o cliente após aprovação do orçamento (best-effort).
+     */
+    private function notificarClienteAprovacao(int $orcId, array $orcAntes): void
+    {
+        try {
+            $dados = $this->repo->buscarParaWhatsapp($orcId);
+            if ($dados === null) {
+                error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}): dados do orçamento não encontrados — ignorado.");
+                return;
+            }
+
+            $telefone = ClienteHelper::telefoneParaWhatsapp($dados);
+            $osId = (string) ($orcAntes['os_id'] ?? '');
+
+            if ($telefone === null || $telefone === '') {
+                error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}): sem telefone WA — ignorado.");
+                return;
+            }
+
+            $mensagem = "Vamos dar continuidade ao conserto do seu equipamento conforme o orçamento "
+                . "aprovado. Assim que o serviço estiver finalizado, entraremos em contato para informar.";
+
+            (new NotificarClienteJob(Database::pdo()))->handle([
+                'telefone' => $telefone,
+                'mensagem' => $mensagem,
+                'os_id'    => $osId,
+            ]);
+        } catch (Throwable $e) {
+            error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}) falhou: " . $e->getMessage());
         }
     }
 
