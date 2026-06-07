@@ -106,11 +106,18 @@ $v = function (string $campo, $default = '') use ($os, $edit): string {
                                class="form-control" autocomplete="off">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">WhatsApp / telefone do contato</label>
+                        <label class="form-label">
+                            WhatsApp do contato
+                            <span class="text-muted fw-normal fst-italic" style="font-size:.85em">(opcional)</span>
+                        </label>
                         <input type="tel" inputmode="tel" name="contato_telefone" id="contato_telefone"
                                value="<?= View::e($v('contato_telefone')) ?>"
                                placeholder="(DDD) 9xxxx-xxxx"
                                class="form-control mask-phone text-mono" autocomplete="off">
+                        <div class="form-text">
+                            Para clientes de empresa: preencha apenas quando souber o WhatsApp da pessoa responsável.
+                            O sistema usa este número para envio de mensagens automáticas.
+                        </div>
                     </div>
                 </div>
             </div>
