@@ -834,6 +834,8 @@ final class OrcamentoService
         $nomeCliente = ClienteHelper::nomeParaMensagem($dados);
         if ($nomeCliente === '') {
             $nomeCliente = 'cliente';
+        } else {
+            $nomeCliente = $this->normalizarNomeExibicao($nomeCliente);
         }
 
         $remetente = $this->normalizarNomeExibicao($this->primeiroNome((string) (Auth::user()['nome'] ?? '')));
@@ -866,7 +868,7 @@ final class OrcamentoService
         $observacao = $this->normalizarObservacaoCliente($dados);
         $diagnosticoBloco = '';
         if ($observacao !== '') {
-            $diagnosticoBloco = "\n\n*Diagnóstico:*\n" . $observacao;
+            $diagnosticoBloco = "\n*Diagnóstico:*\n" . $observacao;
         }
         $prazoDiasUteis = $this->calcularPrazoWhatsapp($dados, $itens);
 

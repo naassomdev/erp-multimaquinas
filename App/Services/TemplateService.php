@@ -66,7 +66,7 @@ final class TemplateService
         'orcamento_os' => [
             'canal'   => 'whatsapp',
             'assunto' => null,
-            'corpo'   => "{{saudacao}}, {{cliente_nome}}, tudo bem?\n{{remetente_nome}} aqui, da Multimáquinas.\n\nSegue o orçamento da OS *#{{os_id}}*.\n\n*Equipamento:* {{equipamento_nome}}{{diagnostico_bloco}}\n\n*Itens para o conserto:*\n{{itens_lista}}\n\n*Total do orçamento:* *{{total_brl}}*\n\nDeseja prosseguir com o orçamento?\n\nPrazo de entrega *até {{prazo_dias_uteis}} dias úteis* após aprovação.\n\nObrigado pela confiança! — Multimáquinas",
+            'corpo'   => "{{saudacao}}, {{cliente_nome}}, tudo bem?\n{{remetente_nome}} aqui, da Multimáquinas.\nSegue o orçamento da OS *#{{os_id}}*.\n*Equipamento:* {{equipamento_nome}}{{diagnostico_bloco}}\n*Itens para o conserto:*\n{{itens_lista}}\n*Total do orçamento:* *{{total_brl}}*\nDeseja prosseguir com o orçamento?\nPrazo de entrega *até {{prazo_dias_uteis}} dias úteis* após aprovação.\nObrigado pela confiança! — Multimáquinas",
         ],
         'orcamento_os_sem_saudacao' => [
             'canal'   => 'whatsapp',
