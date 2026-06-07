@@ -221,31 +221,30 @@ $observacaoRecepcao = trim((string) ($os['obs_recepcao'] ?? $os['observacao'] ??
 $mensagemRecepcao = trim((string) ($equip['obs_recepcao'] ?? ''));
 $prazoResumo = trim((string) ($os['prazo'] ?? $os['prazo_entrega'] ?? $os['data_conclusao'] ?? ''));
 $situacaoComercialLabel = $orcStatus !== '' ? $orcStatus : 'sem orçamento';
-$metadadosEquipamento = [];
-if ($fabricanteEquip !== '') {
-    $metadadosEquipamento[] = ['label' => '', 'value' => $fabricanteEquip];
-}
-if ($modeloEquip !== '') {
-    $metadadosEquipamento[] = ['label' => '', 'value' => $modeloEquip, 'mono' => true];
-}
-if ($serieEquip !== '') {
-    $metadadosEquipamento[] = ['label' => 'Série', 'value' => $serieEquip, 'mono' => true];
-}
-if ($voltagemEquip !== '') {
-    $metadadosEquipamento[] = ['label' => '', 'value' => $voltagemEquip];
-}
-if ($caixaEquip !== '') {
-    $metadadosEquipamento[] = ['label' => 'Caixa', 'value' => $caixaEquip, 'id' => 'focus-cx-main'];
-}
-$metadadosEquipamento[] = ['label' => 'Garantia', 'value' => $garantiaResumo];
+// Specs do equipamento agora são renderizados no card "Equipamento" (_equipamento_card.php),
+// via $resumoEquipamento — substituiu a antiga linha de "meta" do cabeçalho.
+
+$resumoEquipamento = [
+    'nome'        => $nomeEquip,
+    'marca'       => $fabricanteEquip,
+    'modelo'      => $modeloEquip,
+    'tensao'      => $voltagemEquip,
+    'serie'       => $serieEquip,
+    'caixa'       => $caixaEquip,
+    'garantia'    => $garantiaResumo,
+    'em_garantia' => $emGarantia,
+    'defeito'     => $defeito !== '' ? $defeito : 'Sem defeito informado na recepcao.',
+];
 
 $resumoClienteSolicitacao = [
-    'cliente' => trim((string) ($os['nome_cliente'] ?? '')),
-    'telefone' => trim((string) ($os['telefone'] ?? '')),
-    'defeito' => $defeito !== '' ? $defeito : 'Sem defeito informado na recepcao.',
+    'cliente'             => trim((string) ($os['nome_cliente'] ?? '')),
+    'documento'           => trim((string) ($os['doc_cliente'] ?? '')),
+    'telefone'            => trim((string) ($os['telefone'] ?? '')),
+    'contato_nome'        => trim((string) ($os['contato_nome'] ?? '')),
+    'contato_telefone'    => trim((string) ($os['contato_telefone'] ?? '')),
     'observacao_recepcao' => $observacaoRecepcao,
-    'data_entrada' => trim((string) ($os['data_entrada'] ?? '')),
-    'prazo' => $prazoResumo,
+    'data_entrada'        => trim((string) ($os['data_entrada'] ?? '')),
+    'prazo'               => $prazoResumo,
 ];
 
 $acaoPrincipal = null;
@@ -307,7 +306,9 @@ $resumoAndamento = [
         <button type="button" class="btn-close" onclick="this.parentElement.hidden=true"></button>
     </div>
 
-    <section class="tecnico-overview tecnico-overview--summary">
+    <section class="tecnico-overview">
+        <?php include __DIR__ . '/partials/_equipamento_card.php'; ?>
+
         <?php include __DIR__ . '/partials/_cliente_solicitacao_card.php'; ?>
 
         <?php include __DIR__ . '/partials/_andamento_os_card.php'; ?>

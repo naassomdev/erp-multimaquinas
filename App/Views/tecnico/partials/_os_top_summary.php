@@ -11,25 +11,7 @@ use App\Core\View;
                 <?= View::e($nomeEquip !== '' ? $nomeEquip : 'Equipamento sem nome') ?>
                 <small class="text-muted fs-6 d-block d-md-inline ms-md-2">(<?= $totalEquipamentosOs > 0 ? $equipamentoAtualNumero . ' de ' . $totalEquipamentosOs : 'Equipamento' ?>)</small>
             </h1>
-            <div class="tecnico-header-meta mt-2">
-                <?php if (!empty($metadadosEquipamento)): ?>
-                    <?php foreach ($metadadosEquipamento as $metaIdx => $meta): ?>
-                        <?php if ($metaIdx > 0): ?><span class="tecnico-header-meta__sep">&middot;</span><?php endif; ?>
-                        <span class="tecnico-header-meta__item<?= !empty($meta['mono']) ? ' text-mono' : '' ?>">
-                            <?php if ((string) ($meta['label'] ?? '') !== ''): ?>
-                                <?= View::e((string) $meta['label'] . (strtolower((string) $meta['label']) === 'garantia' ? ':' : '')) ?>
-                            <?php endif; ?>
-                            <?php if (!empty($meta['id'])): ?>
-                                <strong id="<?= View::e((string) $meta['id']) ?>"><?= View::e((string) $meta['value']) ?></strong>
-                            <?php else: ?>
-                                <?= View::e((string) $meta['value']) ?>
-                            <?php endif; ?>
-                        </span>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <span class="tecnico-header-meta__item text-body-secondary">Dados tecnicos pendentes.</span>
-                <?php endif; ?>
-            </div>
+            <?php // Specs do equipamento agora ficam no card "Equipamento" (mais legível). ?>
         </div>
         <div class="page-header__actions d-flex gap-2">
             <?php if ($podeVerFontesPdf): ?>

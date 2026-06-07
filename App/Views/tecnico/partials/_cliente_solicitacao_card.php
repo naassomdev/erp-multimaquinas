@@ -1,18 +1,27 @@
 <?php
 use App\Core\View;
+/** @var array $resumoClienteSolicitacao */
+
+$contato = trim(
+    ($resumoClienteSolicitacao['contato_nome'] ?? '')
+    . ($resumoClienteSolicitacao['contato_telefone'] !== '' ? ' · ' . $resumoClienteSolicitacao['contato_telefone'] : ''),
+    ' ·'
+);
 ?>
 
-        <article class="tecnico-summary-card tecnico-summary-card--primary">
+        <article class="tecnico-summary-card">
             <div class="tecnico-summary-card__header">
-                <span class="tecnico-summary-card__eyebrow">Card 1</span>
-                <h2 class="tecnico-summary-card__title">Cliente e solicitacao</h2>
+                <span class="tecnico-summary-card__eyebrow">Cliente</span>
+                <h2 class="tecnico-summary-card__title"><?= View::e($resumoClienteSolicitacao['cliente'] !== '' ? $resumoClienteSolicitacao['cliente'] : 'Cliente nao informado') ?></h2>
             </div>
 
             <div class="tecnico-summary-card__content">
+                <?php if ($resumoClienteSolicitacao['documento'] !== ''): ?>
                 <div class="tecnico-summary-card__block">
-                    <span class="tecnico-summary-card__label">Cliente</span>
-                    <strong class="tecnico-summary-card__value"><?= View::e($resumoClienteSolicitacao['cliente'] !== '' ? $resumoClienteSolicitacao['cliente'] : 'Cliente nao informado') ?></strong>
+                    <span class="tecnico-summary-card__label">CPF / CNPJ</span>
+                    <strong class="tecnico-summary-card__value text-mono"><?= View::e($resumoClienteSolicitacao['documento']) ?></strong>
                 </div>
+                <?php endif; ?>
 
                 <?php if ($resumoClienteSolicitacao['telefone'] !== ''): ?>
                 <div class="tecnico-summary-card__block">
@@ -23,10 +32,12 @@ use App\Core\View;
                 </div>
                 <?php endif; ?>
 
-                <div class="tecnico-summary-card__block tecnico-summary-card__block--wide">
-                    <span class="tecnico-summary-card__label">Defeito relatado</span>
-                    <p class="tecnico-summary-card__text mb-0"><?= View::e($resumoClienteSolicitacao['defeito']) ?></p>
+                <?php if ($contato !== ''): ?>
+                <div class="tecnico-summary-card__block">
+                    <span class="tecnico-summary-card__label">Contato</span>
+                    <strong class="tecnico-summary-card__value"><?= View::e($contato) ?></strong>
                 </div>
+                <?php endif; ?>
 
                 <?php if ($resumoClienteSolicitacao['observacao_recepcao'] !== ''): ?>
                 <div class="tecnico-summary-card__block tecnico-summary-card__block--wide">
