@@ -214,8 +214,9 @@ $garantiaResumo = $emGarantia
     : 'Nao';
 $statusDesdeEm = (string) ($equip['status_equip_em'] ?? '');
 $statusDesdeFmt = $statusDesdeEm !== '' ? date('d/m/Y H:i', strtotime($statusDesdeEm)) : '';
-// obs_recepcao do equipamento é exibido/editado no bloco dedicado "Mensagem da recepção"
-// (logo abaixo dos cards), para não duplicar com este slot da observação geral da OS.
+// obs_recepcao do equipamento é exibido/editado na "Mensagem da recepção" dentro do
+// painel Laudo técnico (substituiu a antiga "Observação interna"), para não duplicar
+// com este slot da observação geral da OS.
 $observacaoRecepcao = trim((string) ($os['obs_recepcao'] ?? $os['observacao'] ?? $os['obs'] ?? ''));
 $mensagemRecepcao = trim((string) ($equip['obs_recepcao'] ?? ''));
 $prazoResumo = trim((string) ($os['prazo'] ?? $os['prazo_entrega'] ?? $os['data_conclusao'] ?? ''));
@@ -310,25 +311,6 @@ $resumoAndamento = [
         <?php include __DIR__ . '/partials/_cliente_solicitacao_card.php'; ?>
 
         <?php include __DIR__ . '/partials/_andamento_os_card.php'; ?>
-    </section>
-
-    <!-- Mensagem interna recepção <-> técnico (canal de mão dupla; não sai no orçamento) -->
-    <section class="card shadow-sm border-warning-subtle mb-3" id="msg-recepcao-bloco">
-        <div class="card-header bg-warning-subtle text-warning-emphasis d-flex align-items-center gap-2">
-            <i class="ph ph-chats-circle"></i>
-            <strong>Mensagem da recepção</strong>
-            <span class="small text-body-secondary ms-1">— recado interno, não sai no orçamento</span>
-        </div>
-        <div class="card-body">
-            <textarea id="msg-recepcao-texto" class="form-control" rows="3"
-                      placeholder="Recado interno entre recepção e técnico..."><?= View::e($mensagemRecepcao) ?></textarea>
-            <div class="d-flex align-items-center gap-2 mt-2">
-                <button type="button" class="btn btn-sm btn-warning" id="btn-salvar-msg-recepcao">
-                    <i class="ph ph-floppy-disk me-1"></i> Salvar recado
-                </button>
-                <span class="small text-body-secondary" id="msg-recepcao-status"></span>
-            </div>
-        </div>
     </section>
 
     <div class="tecnico-shell">
@@ -716,9 +698,22 @@ $resumoAndamento = [
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-lg-7">
-                                <label class="form-label small fw-semibold">Observação interna</label>
-                                <textarea id="obs-int" rows="10" class="form-control" placeholder="Descreva os detalhes técnicos, defeitos encontrados e ações realizadas..."<?= $equipFinalizado ? ' readonly' : '' ?>><?= View::e($obsInt) ?></textarea>
-                                <div class="form-text">Visível para orçamento e demais módulos internos.</div>
+                                <label class="form-label small fw-semibold text-warning-emphasis">
+                                    <i class="ph ph-chats-circle me-1"></i> Mensagem da recepção
+                                </label>
+                                <!-- Preserva o laudo interno (obs_int) existente: a caixa foi removida da
+                                     tela, mas o valor atual é mantido em campo oculto para que o "Salvar laudo"
+                                     reenvie inalterado e não zere laudos já cadastrados. -->
+                                <input type="hidden" id="obs-int" value="<?= View::e($obsInt) ?>">
+                                <textarea id="msg-recepcao-texto" rows="10" class="form-control"
+                                          placeholder="Recado interno entre recepção e técnico (mão dupla)..."><?= View::e($mensagemRecepcao) ?></textarea>
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-warning" id="btn-salvar-msg-recepcao">
+                                        <i class="ph ph-floppy-disk me-1"></i> Salvar recado
+                                    </button>
+                                    <span class="small text-body-secondary" id="msg-recepcao-status"></span>
+                                </div>
+                                <div class="form-text">Recado interno entre recepção e técnico — não sai no orçamento.</div>
                             </div>
                             <div class="col-lg-5">
                                 <label class="form-label small fw-semibold">Observação para o cliente</label>
