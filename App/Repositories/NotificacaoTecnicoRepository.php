@@ -177,7 +177,7 @@ final class NotificacaoTecnicoRepository
         $equipIdx = max(0, (int) ($row['equip_idx'] ?? 0));
         $destino = (string) ($row['destino'] ?? 'oficina');
 
-        if ($destino === 'recepcao' || $this->isNotificacaoComercial($row)) {
+        if ($destino === 'recepcao') {
             return "/orcamento/{$osId}#equip-{$equipIdx}";
         }
 
@@ -189,7 +189,7 @@ final class NotificacaoTecnicoRepository
      */
     private function tituloUrlDestino(array $row): string
     {
-        return (string) ($row['destino'] ?? 'oficina') === 'recepcao' || $this->isNotificacaoComercial($row)
+        return (string) ($row['destino'] ?? 'oficina') === 'recepcao'
             ? 'Abrir orçamento deste equipamento'
             : 'Abrir painel técnico deste equipamento';
     }
