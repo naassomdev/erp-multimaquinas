@@ -973,6 +973,18 @@ final class OrcamentoService
             return 'ROLAMENTO ' . $m[1];
         }
 
+        $abreviacoes = [
+            '/\bREBOBINAMENTO\b/i' => 'REBOBINAMENTO',
+            '/\bSELO\s+MEC[AÂ]NICO\b/iu' => 'SELO MECÂNICO',
+            '/\bCENTR[IÍ]FUGO\b/iu' => 'CENTRÍFUGO',
+            '/\bROTOR\b/i' => 'ROTOR',
+        ];
+        foreach ($abreviacoes as $pattern => $label) {
+            if (preg_match($pattern, $descricao)) {
+                return $label;
+            }
+        }
+
         return $descricao;
     }
 
