@@ -137,10 +137,15 @@ final class TecnicoApiController
             return Response::json(['ok' => false, 'error' => 'Acesso restrito a administradores.'], 403);
         }
 
+        $observacao = trim((string) $request->input('observacao', ''));
+        if ($observacao === '') {
+            return Response::json(['ok' => false, 'error' => 'Informe o motivo do cancelamento.'], 400);
+        }
+
         try {
             $servico = $this->service->cancelarServicoTerceiro(
                 (int) $id,
-                (string) $request->input('observacao', ''),
+                $observacao,
                 Auth::id() ?? 0
             );
 

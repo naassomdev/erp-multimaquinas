@@ -364,6 +364,11 @@ final class TecnicoService
     /** @return array<string, mixed> */
     public function cancelarServicoTerceiro(int $id, string $observacao, int $usuarioId): array
     {
+        $motivo = trim($observacao);
+        if ($motivo === '') {
+            throw new InvalidArgumentException('Informe o motivo do cancelamento do serviço terceirizado.');
+        }
+
         $servico = $this->servicoTerceiroRepo->buscar($id);
         if ($servico === null) {
             throw new RuntimeException('Serviço terceirizado não encontrado.');
@@ -375,7 +380,8 @@ final class TecnicoService
         $pdo = Database::pdo();
         $pdo->beginTransaction();
         try {
-            $this->servicoTerceiroRepo->cancelar($id, $usuarioId, trim($observacao) ?: null);
+            $observacaoCancelamento = 'Cancelamento: ' . $motivo;
+            $this->servicoTerceiroRepo->cancelar($id, $usuarioId, $observacaoCancelamento);
             $atualizado = $this->servicoTerceiroRepo->buscar($id) ?? $servico;
 
             $this->audit->registrar('servicos_terceiros', (string) $id, 'UPDATE', [
@@ -384,6 +390,7 @@ final class TecnicoService
                 'equip_idx' => (int) $servico['equip_idx'],
                 'status_anterior' => (string) $servico['status'],
                 'status_novo' => 'cancelado',
+                'motivo' => $motivo,
             ]);
 
             $pdo->commit();

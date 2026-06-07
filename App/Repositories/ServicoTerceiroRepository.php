@@ -128,7 +128,7 @@ final class ServicoTerceiroRepository
         $sql = "UPDATE servicos_terceiros
                    SET status = 'cancelado',
                        observacao = CASE
-                           WHEN :obs_check IS NULL OR :obs_check = '' THEN observacao
+                           WHEN :obs_check_null IS NULL OR :obs_check_empty = '' THEN observacao
                            WHEN observacao IS NULL OR observacao = '' THEN :obs_set
                            ELSE CONCAT(observacao, CHAR(10), :obs_append)
                        END,
@@ -140,7 +140,8 @@ final class ServicoTerceiroRepository
         $stmt->execute([
             ':id'  => $id,
             ':uid' => $usuarioId > 0 ? $usuarioId : null,
-            ':obs_check' => $observacao,
+            ':obs_check_null' => $observacao,
+            ':obs_check_empty' => $observacao,
             ':obs_set' => $observacao,
             ':obs_append' => $observacao,
         ]);

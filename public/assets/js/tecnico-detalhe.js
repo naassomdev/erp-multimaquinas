@@ -652,9 +652,17 @@
         const btnCancelar = ev.target.closest('.js-servico-terceiro-cancelar');
         if (!btnCancelar) return;
         const id = btnCancelar.dataset.id || '';
-        if (!id || !window.confirm('Cancelar este serviço terceirizado?')) return;
+        if (!id) return;
+        const motivoCancelamento = (window.prompt('Informe o motivo do cancelamento do serviço terceirizado:', '') || '').trim();
+        if (motivoCancelamento === '') {
+            toast('Informe o motivo do cancelamento.', 'err');
+            return;
+        }
+        if (!window.confirm('Cancelar este serviço terceirizado?')) return;
         btnCancelar.disabled = true;
-        api('PATCH', `/api/tecnico/servicos-terceiros/${encodeURIComponent(id)}/cancelar`, {})
+        api('PATCH', `/api/tecnico/servicos-terceiros/${encodeURIComponent(id)}/cancelar`, {
+            observacao: motivoCancelamento
+        })
             .then(() => {
                 toast('Serviço terceirizado cancelado.');
                 reloadDepoisDoFeedback();
