@@ -78,6 +78,15 @@ final class NotificarClienteJob
             return false;
         }
 
+        // Guard de banco — admin pode desligar sem mexer no servidor.
+        $stmt = $this->pdo->prepare("SELECT valor FROM configuracoes WHERE chave = 'whatsapp_enabled'");
+        $stmt->execute();
+        $dbEnabled = ($stmt->fetchColumn() ?: '0') === '1';
+        if (!$dbEnabled) {
+            error_log("[WhatsApp][DB-DISABLED] Para: {$telefone} | desligado via configurações do sistema.");
+            return false;
+        }
+
         if ($dryRun) {
             error_log("[WhatsApp][DRY-RUN] Para: {$telefone} | Msg: " . substr($mensagem, 0, 80));
             return true;

@@ -6,6 +6,7 @@ use App\Core\View;
  * @var string $csrf_token
  */
 $diasAlerta = (int) ($configs['alerta_dias_os_sem_diagnostico'] ?? 20);
+$whatsappEnabled = (string) ($configs['whatsapp_enabled'] ?? '0') === '1';
 ?>
 
 <div class="d-flex flex-column gap-4">
@@ -23,6 +24,30 @@ $diasAlerta = (int) ($configs['alerta_dias_os_sem_diagnostico'] ?? 20);
 
     <form method="POST" action="/tecnico/configuracoes-sistema" autocomplete="off">
         <input type="hidden" name="_csrf" value="<?= View::e($csrf_token) ?>">
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">
+                <i class="ph ph-whatsapp-logo me-1"></i> WhatsApp
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           role="switch"
+                           id="whatsapp_enabled"
+                           name="whatsapp_enabled"
+                           value="1"
+                           <?= $whatsappEnabled ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="whatsapp_enabled">
+                        Envio de mensagens WhatsApp ativo
+                    </label>
+                </div>
+                <div class="form-text">
+                    Requer instância Evolution conectada e <code>WHATSAPP_ENABLED=true</code> no <code>.env</code>.
+                    Este toggle é uma camada adicional de controle.
+                </div>
+            </div>
+        </div>
 
         <div class="card shadow-sm">
             <div class="card-header">

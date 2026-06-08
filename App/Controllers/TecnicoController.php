@@ -207,7 +207,7 @@ final class TecnicoController
         $pdo = Database::pdo();
         $stmt = $pdo->query(
             "SELECT chave, valor FROM configuracoes
-             WHERE chave IN ('alerta_dias_os_sem_diagnostico')
+             WHERE chave IN ('alerta_dias_os_sem_diagnostico', 'whatsapp_enabled')
              ORDER BY chave"
         );
 
@@ -234,6 +234,7 @@ final class TecnicoController
 
         $allowed = [
             'alerta_dias_os_sem_diagnostico' => 'inteiro_positivo',
+            'whatsapp_enabled' => 'booleano',
         ];
 
         $pdo = Database::pdo();
@@ -242,11 +243,15 @@ final class TecnicoController
             foreach ($allowed as $chave => $tipo) {
                 $raw = $request->input($chave);
                 if ($raw === null) {
-                    continue;
+                    if ($tipo !== 'booleano') {
+                        continue;
+                    }
+                    $raw = '0';
                 }
 
                 $valor = match ($tipo) {
                     'inteiro_positivo' => (string) max(1, (int) $raw),
+                    'booleano'         => in_array((string) $raw, ['1', 'true', 'on'], true) ? '1' : '0',
                     default            => trim((string) $raw),
                 };
 
