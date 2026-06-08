@@ -290,4 +290,6 @@ return [
     // ── Relatórios ────────────────────────────────────────────────────
     ['GET', '/relatorios/garantias-fabricante/exportar', [RelatorioController::class, 'exportarGarantiasFabricante'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET', '/relatorios/garantias-fabricante',          [RelatorioController::class, 'garantiasFabricante'],         [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['GET', '/relatorios/saida-equipamentos',            [RelatorioController::class, 'saidaEquipamentos'],           [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['GET', '/relatorios/curva-abc',                     [RelatorioController::class, 'curvaAbc'],                   [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
 ];

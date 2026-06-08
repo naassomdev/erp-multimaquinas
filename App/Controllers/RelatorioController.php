@@ -9,6 +9,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\View;
 use App\Repositories\GarantiaRepository;
+use App\Repositories\RelatorioEquipamentoRepository;
 
 /**
  * Relatórios operacionais — somente leitura.
@@ -22,6 +23,7 @@ final class RelatorioController
 
     public function __construct(
         private readonly GarantiaRepository $garantiaRepo = new GarantiaRepository(),
+        private readonly RelatorioEquipamentoRepository $saidaRepo = new RelatorioEquipamentoRepository(),
     ) {}
 
     // ── Controle de acesso ──────────────────────────────────────────────────
@@ -197,5 +199,78 @@ final class RelatorioController
             'Expires'             => '0',
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
         ]);
+    }
+
+    public function saidaEquipamentos(Request $request): Response
+    {
+        $this->assertAdminOuRecepcao();
+
+        $filtros = [
+            'de'         => trim((string) $request->input('de', date('Y-m-01'))),
+            'ate'        => trim((string) $request->input('ate', date('Y-m-t'))),
+            'tecnico_id' => trim((string) $request->input('tecnico_id', '')),
+            'tipo'       => trim((string) $request->input('tipo', '')),
+        ];
+        $pagina = max(1, (int) $request->input('p', 1));
+
+        $registros = $this->saidaRepo->listarSaidas($filtros, $pagina, self::PER_PAGE);
+        $total = $this->saidaRepo->contarSaidas($filtros);
+        $kpis = $this->saidaRepo->kpisSaidas($filtros);
+        $tecnicos = $this->saidaRepo->listarTecnicos();
+        $totalPaginas = max(1, (int) ceil($total / self::PER_PAGE));
+
+        return Response::html(View::render('relatorios/saida_equipamentos', [
+            'titulo'       => 'Saída de Equipamentos',
+            'activeMenu'   => 'relatorios',
+            'registros'    => $registros,
+            'total'        => $total,
+            'kpis'         => $kpis,
+            'tecnicos'     => $tecnicos,
+            'filtros'      => $filtros,
+            'pagina'       => $pagina,
+            'totalPaginas' => $totalPaginas,
+        ]));
+    }
+
+    public function curvaAbc(Request $request): Response
+    {
+        $this->assertAdminOuRecepcao();
+
+        $abaInput = (string) $request->input('aba', '');
+        $aba = in_array($abaInput, ['estoque', 'tipo', 'marca'], true) ? $abaInput : 'estoque';
+        $de = trim((string) $request->input('de', ''));
+        $ate = trim((string) $request->input('ate', ''));
+
+        $brutos = match ($aba) {
+            'tipo'  => $this->saidaRepo->abcTipo($de, $ate),
+            'marca' => $this->saidaRepo->abcMarca($de, $ate),
+            default => $this->saidaRepo->abcEstoque(),
+        };
+
+        $metrica = $aba === 'estoque' ? 'valor_total' : 'quantidade';
+        $somaTotal = array_sum(array_map('floatval', array_column($brutos, $metrica)));
+        $acumulado = 0.0;
+        $dados = [];
+
+        foreach ($brutos as $item) {
+            $valorItem = (float) ($item[$metrica] ?? 0);
+            $acumulado += $valorItem;
+            $pctAcum = $somaTotal > 0 ? round($acumulado / $somaTotal * 100, 1) : 0.0;
+            $dados[] = $item + [
+                'pct_item' => $somaTotal > 0 ? round($valorItem / $somaTotal * 100, 1) : 0.0,
+                'pct_acum' => $pctAcum,
+                'classe'   => $pctAcum <= 80.0 ? 'A' : ($pctAcum <= 95.0 ? 'B' : 'C'),
+            ];
+        }
+
+        return Response::html(View::render('relatorios/curva_abc', [
+            'titulo'     => 'Curva ABC',
+            'activeMenu' => 'relatorios',
+            'aba'        => $aba,
+            'dados'      => $dados,
+            'de'         => $de,
+            'ate'        => $ate,
+            'somaTotal'  => $somaTotal,
+        ]));
     }
 }
