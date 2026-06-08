@@ -25,3 +25,13 @@ bootstrap/cache/
 *.log
 public/uploads/
 .playwright-mcp/
+
+# Certificados digitais A1 / chaves privadas
+*.pfx
+*.p12
+*.pem
+*.key
+storage/certs/*
+!storage/certs/.gitkeep
+erp-nfse/storage/certs/*
+!erp-nfse/storage/certs/.gitkeep
