@@ -24,6 +24,20 @@ final class NotificarClienteJob
 {
     public function __construct(private readonly PDO $pdo) {}
 
+    private function env(string $key, string $default = ''): string
+    {
+        $value = getenv($key);
+        if ($value !== false) {
+            return (string)$value;
+        }
+
+        if (isset($_ENV[$key])) {
+            return (string)$_ENV[$key];
+        }
+
+        return $default;
+    }
+
     public function handle(array $payload): void
     {
         $telefone = (string)($payload['telefone'] ?? '');
@@ -69,9 +83,9 @@ final class NotificarClienteJob
     private function enviarWhatsapp(string $telefone, string $mensagem): bool
     {
         // Safety gate: desligado até a Evolution API estar ativa e a VPS atualizada.
-        $enabled = filter_var(getenv('WHATSAPP_ENABLED') ?: 'false', FILTER_VALIDATE_BOOLEAN);
-        $dryRun = filter_var(getenv('WHATSAPP_DRY_RUN') ?: 'true', FILTER_VALIDATE_BOOLEAN);
-        $timeout = max(1, (int)(getenv('WHATSAPP_TIMEOUT') ?: 3));
+        $enabled = filter_var($this->env('WHATSAPP_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($this->env('WHATSAPP_DRY_RUN', 'true'), FILTER_VALIDATE_BOOLEAN);
+        $timeout = max(1, (int)$this->env('WHATSAPP_TIMEOUT', '3'));
 
         if (!$enabled) {
             error_log("[WhatsApp][DISABLED] Para: {$telefone} | Msg: " . substr($mensagem, 0, 80));
@@ -92,9 +106,9 @@ final class NotificarClienteJob
             return true;
         }
 
-        $url      = (string)(getenv('WHATSAPP_API_URL') ?: '');
-        $apiKey   = (string)(getenv('WHATSAPP_API_KEY') ?: '');
-        $instance = (string)(getenv('WHATSAPP_INSTANCE') ?: '');
+        $url      = $this->env('WHATSAPP_API_URL');
+        $apiKey   = $this->env('WHATSAPP_API_KEY');
+        $instance = $this->env('WHATSAPP_INSTANCE');
 
         if ($url === '' || $apiKey === '' || $instance === '') {
             return false; // não configurado
@@ -130,13 +144,15 @@ final class NotificarClienteJob
         if ($response === false || $code >= 400) {
             throw new RuntimeException("HTTP {$code} {$err}");
         }
+
+        error_log("[WhatsApp][SENT] Para: {$numero} | HTTP {$code}");
         return true;
     }
 
     private function enviarEmail(string $para, string $assunto, string $mensagem): bool
     {
-        $from     = (string)(getenv('MAIL_FROM')      ?: '');
-        $fromName = (string)(getenv('MAIL_FROM_NAME') ?: 'Multimáquinas');
+        $from     = $this->env('MAIL_FROM');
+        $fromName = $this->env('MAIL_FROM_NAME', 'Multimáquinas');
 
         if ($from === '') return false; // não configurado
 
