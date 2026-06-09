@@ -21,8 +21,13 @@ final class OsService
      * TUDO dentro de uma única transação, exceto o enqueue — que é intencional:
      * se o enqueue falhar, o financeiro já foi salvo e pode ser reconciliado pelo cron.
      */
-    public function concluirOS(int $osId, int $operadorId): array
+    public function concluirOS(string $osId, int $operadorId): array
     {
+        $osId = trim($osId);
+        if ($osId === '') {
+            throw new DomainException('OS inválida para conclusão.');
+        }
+
         if (!FiscalGuard::canRunWorker($this->pdo)) {
             FiscalGuard::auditBlock($this->pdo, 'erp-nfse_os_concluir', null, $operadorId);
             throw new DomainException(FiscalGuard::blockMessage($this->pdo, 'erp-nfse_os_concluir'));
@@ -32,7 +37,7 @@ final class OsService
         try {
             // 1. Lê a OS (com lock de leitura para evitar dupla conclusão)
             $st = $this->pdo->prepare(
-                'SELECT id, cliente_id, total, status
+                'SELECT id, cliente_id, nome_cliente, status, data_conclusao
                  FROM ordem_servico
                  WHERE id = ?
                  LIMIT 1
@@ -44,14 +49,22 @@ final class OsService
             if (!$os) {
                 throw new DomainException("OS #{$osId} não encontrada.");
             }
-            if ($os['status'] === 'concluida') {
-                throw new DomainException("OS #{$osId} já foi concluída anteriormente.");
+            if ($os['status'] === 'retirado') {
+                throw new DomainException("OS #{$osId} já foi entregue ao cliente.");
+            }
+            if ($os['data_conclusao'] !== null) {
+                throw new DomainException("OS #{$osId} já foi concluída administrativamente.");
+            }
+
+            $total = $this->somarOrcamentosAprovados($osId);
+            if ($total <= 0.0) {
+                throw new DomainException("OS #{$osId} não possui orçamento aprovado com valor para faturar.");
             }
 
             // 2. Atualiza status da OS
             $this->pdo->prepare(
                 "UPDATE ordem_servico
-                 SET status = 'concluida', data_conclusao = NOW(), operador_id = ?
+                 SET status = 'pronto', data_conclusao = NOW(), operador_id = ?
                  WHERE id = ?
                  LIMIT 1"
             )->execute([$operadorId, $osId]);
@@ -62,16 +75,27 @@ final class OsService
                 "INSERT INTO lancamentos_receber
                  (os_id, cliente_id, valor, vencimento, status, descricao, criado_em)
                  VALUES (?, ?, ?, DATE_ADD(CURDATE(), INTERVAL 1 DAY), 'aberto', ?, NOW())"
-            )->execute([$osId, $os['cliente_id'], $os['total'], $descricao]);
+            )->execute([$osId, $os['cliente_id'], $total, $descricao]);
 
             $lancamentoId = (int)$this->pdo->lastInsertId();
 
             // 4. Registra a nota como pendente (referência para o worker)
             $this->pdo->prepare(
                 "INSERT INTO notas_fiscais
-                 (os_id, lancamento_id, status, criado_em)
-                 VALUES (?, ?, 'pendente', NOW())"
-            )->execute([$osId, $lancamentoId]);
+                 (os_id, lancamento_id, cliente_id, tipo_documento, ambiente, status,
+                  valor_total, descricao_servico, serie_dps, competencia, created_by, updated_by, criado_em, atualizado_em)
+                 VALUES (?, ?, ?, 'nfse', ?, 'pendente', ?, ?, ?, CURDATE(), ?, ?, NOW(), NOW())"
+            )->execute([
+                $osId,
+                $lancamentoId,
+                $os['cliente_id'],
+                getenv('NFSE_AMBIENTE') ?: 'homologacao',
+                $total,
+                $descricao,
+                getenv('NFSE_SERIE_DPS') ?: '1',
+                $operadorId,
+                $operadorId,
+            ]);
 
             $notaId = (int)$this->pdo->lastInsertId();
 
@@ -103,8 +127,13 @@ final class OsService
      * Reabre uma OS que foi concluída indevidamente (só admin).
      * Estorna o lançamento financeiro associado.
      */
-    public function reabrirOS(int $osId): void
+    public function reabrirOS(string $osId): void
     {
+        $osId = trim($osId);
+        if ($osId === '') {
+            throw new DomainException('OS inválida para reabertura.');
+        }
+
         $this->pdo->beginTransaction();
         try {
             $this->pdo->prepare(
@@ -124,5 +153,21 @@ final class OsService
             if ($this->pdo->inTransaction()) $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    private function somarOrcamentosAprovados(string $osId): float
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT COALESCE(SUM(o.total), 0)
+               FROM orcamentos o
+               JOIN os_equipamento eq
+                 ON eq.os_id     = o.os_id
+                AND eq.ordem_idx = o.equip_idx
+              WHERE o.os_id  = ?
+                AND o.status = 'aprovado'
+                AND eq.status_equip NOT IN ('retirado','devolvido','descartado')"
+        );
+        $stmt->execute([$osId]);
+        return (float)$stmt->fetchColumn();
     }
 }

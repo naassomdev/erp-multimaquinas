@@ -60,10 +60,10 @@ if ($uri === '/admin/queue/stats' && $method === 'GET') {
 if ($uri === '/api/os/concluir' && $method === 'POST') {
     try {
         $body = json_decode((string)file_get_contents('php://input'), true);
-        $osId       = (int)($body['os_id']       ?? 0);
+        $osId       = trim((string)($body['os_id']       ?? ''));
         $operadorId = (int)($body['operador_id'] ?? 0);
 
-        if ($osId <= 0 || $operadorId <= 0) {
+        if ($osId === '' || $operadorId <= 0) {
             http_response_code(400);
             echo json_encode(['ok' => false, 'erro' => 'os_id e operador_id são obrigatórios.']);
             exit;

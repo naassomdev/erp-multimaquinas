@@ -36,11 +36,17 @@ final class EmitirNfseJob
         // ── Busca dados da nota + OS ──────────────────────────────────────────
         $st = $this->pdo->prepare(
             "SELECT nf.id, nf.os_id, nf.lancamento_id, nf.status,
-                    os.nome_cliente, os.telefone, os.total       AS valor,
-                    c.cpf_cnpj
+                    nf.valor_total,
+                    nf.descricao_servico,
+                    lr.valor       AS valor_lancamento,
+                    lr.descricao   AS descricao_lancamento,
+                    COALESCE(lr.cliente_id, nf.cliente_id, os.cliente_id) AS cliente_id,
+                    COALESCE(c.nome, os.nome_cliente) AS nome_cliente,
+                    COALESCE(c.cpf_cnpj, os.doc_cliente) AS cpf_cnpj
              FROM notas_fiscais nf
-             INNER JOIN ordem_servico os ON os.id = nf.os_id
-             LEFT  JOIN clientes c       ON c.id  = os.cliente_id
+             LEFT JOIN lancamentos_receber lr ON lr.id = nf.lancamento_id
+             LEFT JOIN ordem_servico os       ON os.id = nf.os_id
+             LEFT JOIN clientes c             ON c.id  = COALESCE(lr.cliente_id, nf.cliente_id, os.cliente_id)
              WHERE nf.id = ?
              LIMIT 1"
         );
@@ -63,13 +69,25 @@ final class EmitirNfseJob
         $this->nfseService = new NfseService($this->certManager);
 
         $ambiente  = (string)(getenv('NFSE_AMBIENTE') ?: 'homologacao');
+        $valorServico = (float)($nota['valor_total'] ?? 0);
+        if ($valorServico <= 0.0) {
+            $valorServico = (float)($nota['valor_lancamento'] ?? 0);
+        }
+        $descricaoServico = trim((string)($nota['descricao_servico'] ?? ''));
+        if ($descricaoServico === '') {
+            $descricaoServico = trim((string)($nota['descricao_lancamento'] ?? ''));
+        }
+        if ($descricaoServico === '') {
+            $descricaoServico = "Serviço de assistência técnica — OS #{$nota['os_id']}";
+        }
+
         $resultado = $this->nfseService->emitir([
             'nota_id'       => $notaId,
-            'os_id'         => (int)$nota['os_id'],
+            'os_id'         => (string)$nota['os_id'],
             'nome_cliente'  => (string)$nota['nome_cliente'],
             'cpf_cnpj'      => preg_replace('/\D/', '', (string)($nota['cpf_cnpj'] ?? '')),
-            'valor_servico' => (float)$nota['valor'],
-            'descricao'     => "Serviço de assistência técnica — OS #{$nota['os_id']}",
+            'valor_servico' => $valorServico,
+            'descricao'     => $descricaoServico,
             'ambiente'      => $ambiente,
         ]);
 
