@@ -120,7 +120,10 @@
             <?php endif; ?>
 
             <?php if (in_array($nivel, ['admin', 'recepcao'])): ?>
-                <?= $navItem('/relatorios/garantias-fabricante', 'ph ph-shield-check', 'Garantias Fab.', 'relatorios', $activeMenu) ?>
+                <div class="app-sidebar__section">Relatorios</div>
+                <?= $navItem('/relatorios/garantias-fabricante', 'ph ph-shield-check', 'Garantias Fab.',     'relatorios', $activeMenu) ?>
+                <?= $navItem('/relatorios/saida-equipamentos',   'ph ph-wrench',        'Saída Equipamentos', 'relatorios', $activeMenu) ?>
+                <?= $navItem('/relatorios/curva-abc',            'ph ph-chart-bar',     'Curva ABC',          'relatorios', $activeMenu) ?>
             <?php endif; ?>
 
             <?php if ($nivel === 'admin'): ?>
