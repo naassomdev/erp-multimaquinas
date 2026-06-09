@@ -69,22 +69,23 @@ document.addEventListener('DOMContentLoaded', () => {
         // senão só preenche campos vazios (não sobrescreve o que o
         // usuário já digitou intencionalmente em outro campo).
         if (source === 'nome') {
-            if (telInput) telInput.value = c.telefone || c.celular || '';
+            if (telInput) telInput.value = c.telefone || c.celular || c.whatsapp || '';
             if (docInput) docInput.value = c.cpf_cnpj || '';
         } else {
             const fillIfEmpty = (input, val) => {
                 if (input && (input.value || '').trim() === '' && val) input.value = val;
             };
             fillIfEmpty(nomeInput, c.nome);
-            fillIfEmpty(telInput,  c.telefone || c.celular || '');
+            fillIfEmpty(telInput,  c.telefone || c.celular || c.whatsapp || '');
             fillIfEmpty(docInput,  c.cpf_cnpj || '');
         }
 
-        // 10F-2: sugerir celular no campo contato_telefone quando
+        // 10F-2: sugerir WhatsApp cadastrado no campo contato_telefone quando
         // o cliente é empresa (tem nome_fantasia) e o campo está vazio.
-        // O celular costuma ser o WhatsApp do funcionário de contato.
-        if (c.nome_fantasia && c.celular && contatoTelInput && (contatoTelInput.value || '').trim() === '') {
-            contatoTelInput.value = c.celular;
+        // Pode ser numero direto ou JID de grupo.
+        const whatsappContato = c.whatsapp || c.celular || '';
+        if (c.nome_fantasia && whatsappContato && contatoTelInput && (contatoTelInput.value || '').trim() === '') {
+            contatoTelInput.value = whatsappContato;
         }
 
         const displayNome = c.nome_fantasia
@@ -129,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'ac-item';
             item.setAttribute('data-index', i);
 
-            const tel  = c.telefone || c.celular || '';
+            const tel  = c.telefone || c.celular || c.whatsapp || '';
             const meta = [tel, c.cpf_cnpj, c.cidade].filter(Boolean).join(' · ');
             // 10F-2: exibe nome_fantasia quando disponível
             const nomeLabel = c.nome_fantasia
@@ -252,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const left  = digitsOnly(termo);
             const right = digitsOnly(
                 targetField === 'telefone'
-                    ? (c.telefone || c.celular || '')
+                    ? (c.telefone || c.celular || c.whatsapp || '')
                     : c.cpf_cnpj
             );
             if (left && right && right.includes(left)) {

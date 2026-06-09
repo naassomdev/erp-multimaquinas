@@ -17,7 +17,12 @@ $enderecoLinha = trim(implode(', ', array_filter([
     trim(($c['cidade'] ?? '') . (!empty($c['uf']) ? ' / ' . $c['uf'] : '')),
 ])));
 
-$waTel = preg_replace('/\D/', '', $c['celular'] ?: ($c['telefone'] ?? ''));
+$whatsappDestino = trim((string) ($c['whatsapp'] ?? ''));
+$whatsappGrupo = $whatsappDestino !== '' && str_contains($whatsappDestino, '@g.us');
+$whatsappNumero = $whatsappDestino !== '' && !str_contains($whatsappDestino, '@')
+    ? $whatsappDestino
+    : ($c['celular'] ?: ($c['telefone'] ?? ''));
+$waTel = preg_replace('/\D/', '', $whatsappNumero);
 if (strlen($waTel) === 10 || strlen($waTel) === 11) $waTel = '55' . $waTel;
 ?>
 
@@ -122,6 +127,18 @@ if (strlen($waTel) === 10 || strlen($waTel) === 11) $waTel = '55' . $waTel;
 
                         <dt class="col-12 text-body-secondary text-uppercase small fw-semibold">Celular</dt>
                         <dd class="col-12 text-mono mb-3"><?= View::e($c['celular'] ?: '—') ?></dd>
+
+                        <?php if ($whatsappDestino !== ''): ?>
+                        <dt class="col-12 text-body-secondary text-uppercase small fw-semibold">WhatsApp / Grupo</dt>
+                        <dd class="col-12 text-mono mb-3">
+                            <?= View::e($whatsappDestino) ?>
+                            <?php if ($whatsappGrupo): ?>
+                                <span class="badge text-bg-info ms-1"><i class="ph ph-whatsapp-logo me-1"></i>Grupo</span>
+                            <?php else: ?>
+                                <span class="badge text-bg-success ms-1"><i class="ph ph-whatsapp-logo me-1"></i>WA</span>
+                            <?php endif; ?>
+                        </dd>
+                        <?php endif; ?>
 
                         <dt class="col-12 text-body-secondary text-uppercase small fw-semibold">E-mail</dt>
                         <dd class="col-12 break-all mb-0">

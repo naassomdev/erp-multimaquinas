@@ -39,30 +39,39 @@ final class ClienteHelper
     }
 
     /**
-     * Resolve o melhor telefone para WhatsApp.
+     * Resolve o melhor telefone/destino para WhatsApp.
      *
-     * Prioridade (campo da tabela clientes):
-     *   1. celular  — mais provável de ter WhatsApp
-     *   2. telefone2
-     *   3. fone
-     *   4. telefone (fixo / OS-level)
+     * Prioridade:
+     *   1. contato_telefone da OS — contato operacional informado na abertura
+     *   2. whatsapp do cadastro do cliente — numero direto ou grupo
+     *   3. celular — mais provável de ter WhatsApp
+     *   4. telefone2
+     *   5. fone
+     *   6. telefone (fixo / OS-level)
      *
-     * Validação mínima: ≥ 10 dígitos (DDD 2 + número 8 ou 9).
+     * Se o destino vier como JID (ex.: grupo @g.us), preserva sem normalizar.
+     * Para telefone comum: validação mínima ≥ 10 dígitos (DDD 2 + número 8 ou 9).
      * Retorna número normalizado (só dígitos, DDI 55 prefixado) ou null.
      *
      * @param array<string, mixed> $cliente
      */
-    public static function telefoneParaWhatsapp(array $cliente): ?string
+    public static function telefoneParaWhatsapp(array $cliente, string $contatoTelefone = ''): ?string
     {
-        foreach (['celular', 'telefone2', 'fone', 'telefone'] as $campo) {
-            $tel = preg_replace('/\D/', '', (string) ($cliente[$campo] ?? ''));
-            if ($tel === null || mb_strlen($tel) < 10) {
-                continue;
+        $destinoContato = self::normalizarDestinoWhatsapp($contatoTelefone);
+        if ($destinoContato !== null) {
+            return $destinoContato;
+        }
+
+        $destinoContato = self::normalizarDestinoWhatsapp((string) ($cliente['contato_telefone'] ?? ''));
+        if ($destinoContato !== null) {
+            return $destinoContato;
+        }
+
+        foreach (['whatsapp', 'celular', 'telefone2', 'fone', 'telefone'] as $campo) {
+            $destino = self::normalizarDestinoWhatsapp((string) ($cliente[$campo] ?? ''));
+            if ($destino !== null) {
+                return $destino;
             }
-            if (!str_starts_with($tel, '55')) {
-                $tel = '55' . $tel;
-            }
-            return $tel;
         }
         return null;
     }
@@ -147,5 +156,28 @@ final class ClienteHelper
         ]);
 
         return $first . $m[2];
+    }
+
+    private static function normalizarDestinoWhatsapp(string $destino): ?string
+    {
+        $destino = trim($destino);
+        if ($destino === '') {
+            return null;
+        }
+
+        if (str_contains($destino, '@')) {
+            return $destino;
+        }
+
+        $tel = preg_replace('/\D/', '', $destino);
+        if ($tel === null || strlen($tel) < 10) {
+            return null;
+        }
+
+        if (!str_starts_with($tel, '55')) {
+            $tel = '55' . $tel;
+        }
+
+        return $tel;
     }
 }

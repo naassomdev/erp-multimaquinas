@@ -98,14 +98,19 @@ final class OrcamentoRepository
     public function buscarParaWhatsapp(int $orcId): ?array
     {
         // 10F-1: JOIN em clientes para obter nome_fantasia, celular, fone, telefone2.
+        // Também carrega contato_telefone da OS e fotos da recepção para envio WA automático.
         // Permite ClienteHelper::nomeParaMensagem() e telefoneParaWhatsapp() usarem
         // a prioridade correta de campos em vez de depender só do os.telefone.
         $sql = "SELECT o.id, o.os_id, o.equip_idx, o.tipo, o.status, o.total, o.mo_valor,
                        o.obs_admin, o.obs_tecnico, o.wpp_enviado_em, o.motivo_gratuidade,
-                       os.nome_cliente, os.telefone,
+                       os.nome_cliente, os.telefone, os.contato_telefone,
+                       (SELECT eq0.fotos_os_json
+                          FROM os_equipamento eq0
+                         WHERE eq0.os_id = os.id AND eq0.ordem_idx = 0
+                         LIMIT 1) AS fotos_os_json,
                        eq.nome AS equip_nome, eq.fabricante, eq.modelo, eq.serie,
                        eq.voltagem, eq.obs_cli, eq.obs_int, eq.status_equip,
-                       c.nome_fantasia, c.celular, c.fone, c.telefone2
+                       c.nome_fantasia, c.whatsapp, c.celular, c.fone, c.telefone2
                   FROM orcamentos o
                  INNER JOIN ordem_servico  os ON os.id = o.os_id
                   LEFT JOIN os_equipamento eq ON eq.os_id = o.os_id AND eq.ordem_idx = o.equip_idx

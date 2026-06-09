@@ -22,7 +22,7 @@ final class ClienteRepository
         $offset = ($page - 1) * $perPage;
 
         $sql = "SELECT id, nome, nome_fantasia, cpf_cnpj, telefone, telefone2,
-                       celular, email, cidade, uf, created_at
+                       celular, whatsapp, email, cidade, uf, created_at
                 FROM clientes
                 {$whereStr}
                 ORDER BY nome ASC
@@ -90,16 +90,17 @@ final class ClienteRepository
     {
         $dig = preg_replace('/\D/', '', $telefone);
         $stmt = Database::pdo()->prepare(
-            "SELECT id, nome, telefone, celular, cpf_cnpj
+            "SELECT id, nome, telefone, celular, whatsapp, cpf_cnpj
              FROM clientes
              WHERE REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') LIKE ?
                 OR REPLACE(REPLACE(REPLACE(telefone2, '(', ''), ')', ''), '-', '') LIKE ?
                 OR REPLACE(REPLACE(REPLACE(celular, '(', ''), ')', ''), '-', '') LIKE ?
+                OR whatsapp LIKE ?
              ORDER BY nome ASC
              LIMIT 20"
         );
         $like = "%{$dig}%";
-        $stmt->execute([$like, $like, $like]);
+        $stmt->execute([$like, $like, $like, $like]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -121,10 +122,11 @@ final class ClienteRepository
         $temDigitos = $dig !== '';
 
         // Monta WHERE dinâmico para evitar clauses inúteis
-        $conditions = ['nome LIKE :t_nome', 'email LIKE :t_email'];
+        $conditions = ['nome LIKE :t_nome', 'email LIKE :t_email', 'whatsapp LIKE :t_whatsapp'];
         $params = [
             ':t_nome'  => $like,
             ':t_email' => $like,
+            ':t_whatsapp' => $like,
         ];
 
         if ($temDigitos) {
@@ -132,15 +134,17 @@ final class ClienteRepository
             $conditions[] = $this->documentoNumericoExpr('cpf_cnpj') . ' LIKE :t_doc';
             $conditions[] = 'telefone LIKE :t_tel';
             $conditions[] = 'celular LIKE :t_cel';
+            $conditions[] = 'whatsapp LIKE :t_wa_dig';
             $params[':t_doc'] = $digLike;
             $params[':t_tel'] = $digLike;
             $params[':t_cel'] = $digLike;
+            $params[':t_wa_dig'] = $digLike;
         }
 
         $where = implode(' OR ', $conditions);
 
         // 10F-2: inclui nome_fantasia para que o JS exiba e diferencie empresa/pessoa.
-        $sql = "SELECT id, nome, nome_fantasia, cpf_cnpj, telefone, celular, cidade, uf
+        $sql = "SELECT id, nome, nome_fantasia, cpf_cnpj, telefone, celular, whatsapp, cidade, uf
                 FROM clientes
                 WHERE {$where}
                 ORDER BY nome ASC
@@ -162,7 +166,7 @@ final class ClienteRepository
     {
         $campos = [
             'nome', 'nome_fantasia', 'data_nascimento', 'telefone', 'telefone2',
-            'email', 'cpf_cnpj', 'rg_ie', 'fone', 'celular',
+            'email', 'cpf_cnpj', 'rg_ie', 'fone', 'celular', 'whatsapp',
             'endereco', 'numero', 'complemento', 'bairro',
             'cod_cidade', 'cidade', 'uf', 'cep', 'obs',
         ];
@@ -197,7 +201,7 @@ final class ClienteRepository
     {
         $campos = [
             'nome', 'nome_fantasia', 'data_nascimento', 'telefone', 'telefone2',
-            'email', 'cpf_cnpj', 'rg_ie', 'fone', 'celular',
+            'email', 'cpf_cnpj', 'rg_ie', 'fone', 'celular', 'whatsapp',
             'endereco', 'numero', 'complemento', 'bairro',
             'cod_cidade', 'cidade', 'uf', 'cep', 'obs',
         ];
@@ -276,18 +280,22 @@ final class ClienteRepository
                 'nome LIKE :busca_nome',
                 'email LIKE :busca_email',
                 'cidade LIKE :busca_cidade',
+                'whatsapp LIKE :busca_whatsapp',
             ];
             $params[':busca_nome'] = $like;
             $params[':busca_email'] = $like;
             $params[':busca_cidade'] = $like;
+            $params[':busca_whatsapp'] = $like;
 
             if ($dig !== '') {
                 $conditions[] = $this->documentoNumericoExpr('cpf_cnpj') . ' LIKE :busca_doc';
                 $conditions[] = 'telefone LIKE :busca_tel';
                 $conditions[] = 'celular LIKE :busca_cel';
+                $conditions[] = 'whatsapp LIKE :busca_wa_digits';
                 $params[':busca_doc'] = "%{$dig}%";
                 $params[':busca_tel'] = "%{$dig}%";
                 $params[':busca_cel'] = "%{$dig}%";
+                $params[':busca_wa_digits'] = "%{$dig}%";
             }
 
             $where[] = '(' . implode(' OR ', $conditions) . ')';
@@ -309,7 +317,7 @@ final class ClienteRepository
     {
         $stmt = Database::pdo()->prepare(
             "SELECT id, nome, nome_fantasia, cpf_cnpj, telefone, telefone2,
-                    celular, fone, email, endereco, numero, complemento,
+                    celular, whatsapp, fone, email, endereco, numero, complemento,
                     bairro, cidade, uf, cep, obs,
                     ativo, merged_into_id, merged_at, merged_by, created_at
                FROM clientes WHERE id = ? LIMIT 1"
@@ -365,7 +373,7 @@ final class ClienteRepository
 
             // ── 2. Copiar campos selecionados (origem → destino, só se destino vazio) ──
             $camposPermitidos = ['nome', 'nome_fantasia', 'cpf_cnpj', 'telefone', 'telefone2',
-                                 'celular', 'fone', 'email', 'endereco', 'numero', 'complemento',
+                                 'celular', 'whatsapp', 'fone', 'email', 'endereco', 'numero', 'complemento',
                                  'bairro', 'cidade', 'uf', 'cep'];
             $camposValidos = array_intersect($camposACopiar, $camposPermitidos);
             if (!empty($camposValidos)) {
@@ -579,12 +587,21 @@ final class ClienteRepository
         $cpfCnpj = preg_replace('/\D/', '', $dados['cpf_cnpj'] ?? '');
         $email = trim(strtolower($dados['email'] ?? ''));
         
-        $telefones = [
-            preg_replace('/\D/', '', $dados['telefone'] ?? ''),
-            preg_replace('/\D/', '', $dados['telefone2'] ?? ''),
-            preg_replace('/\D/', '', $dados['celular'] ?? ''),
-            preg_replace('/\D/', '', $dados['fone'] ?? ''),
+        $telefonesRaw = [
+            (string) ($dados['telefone'] ?? ''),
+            (string) ($dados['telefone2'] ?? ''),
+            (string) ($dados['celular'] ?? ''),
+            (string) ($dados['fone'] ?? ''),
         ];
+        $whatsappRaw = (string) ($dados['whatsapp'] ?? '');
+        if ($whatsappRaw !== '' && !str_contains($whatsappRaw, '@')) {
+            $telefonesRaw[] = $whatsappRaw;
+        }
+
+        $telefones = array_map(
+            static fn(string $telefone): string => preg_replace('/\D/', '', $telefone) ?? '',
+            $telefonesRaw
+        );
         $telefones = array_filter($telefones, fn($t) => strlen($t) >= 9); // Apenas números consistentes (considerando apenas a parte local + ddd)
         
         // Se nenhum campo preenchido, não há o que buscar
@@ -614,15 +631,18 @@ final class ClienteRepository
                 $p2 = ":tel_{$i}_2";
                 $p3 = ":tel_{$i}_3";
                 $p4 = ":tel_{$i}_4";
+                $p5 = ":tel_{$i}_5";
                 $params[$p1] = "%{$tel9}";
                 $params[$p2] = "%{$tel9}";
                 $params[$p3] = "%{$tel9}";
                 $params[$p4] = "%{$tel9}";
+                $params[$p5] = "%{$tel9}";
                 $tConds[] = "(
                     REGEXP_REPLACE(telefone, '[^0-9]', '') LIKE {$p1} OR
                     REGEXP_REPLACE(telefone2, '[^0-9]', '') LIKE {$p2} OR
                     REGEXP_REPLACE(celular, '[^0-9]', '') LIKE {$p3} OR
-                    REGEXP_REPLACE(fone, '[^0-9]', '') LIKE {$p4}
+                    REGEXP_REPLACE(fone, '[^0-9]', '') LIKE {$p4} OR
+                    REGEXP_REPLACE(whatsapp, '[^0-9]', '') LIKE {$p5}
                 )";
             }
             $condicoes[] = '(' . implode(' OR ', $tConds) . ')';

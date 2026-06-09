@@ -17,6 +17,7 @@ $label = [
     'telefone'     => 'Telefone',
     'telefone2'    => 'Telefone 2',
     'celular'      => 'Celular',
+    'whatsapp'     => 'WhatsApp / Grupo',
     'fone'         => 'Fone',
     'email'        => 'E-mail',
     'endereco'     => 'Endereço',

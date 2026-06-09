@@ -287,6 +287,7 @@ final class ClienteController
             'rg_ie'           => trim((string) $request->input('rg_ie', '')),
             'fone'            => trim((string) $request->input('fone', '')),
             'celular'         => trim((string) $request->input('celular', '')),
+            'whatsapp'        => trim((string) $request->input('whatsapp', '')),
             'endereco'        => trim((string) $request->input('endereco', '')),
             'numero'          => trim((string) $request->input('numero', '')),
             'complemento'     => trim((string) $request->input('complemento', '')),

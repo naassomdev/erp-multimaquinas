@@ -44,6 +44,7 @@ final class NotificarClienteJob
         $email    = (string)($payload['email']    ?? '');
         $mensagem = (string)($payload['mensagem'] ?? '');
         $osId     = (string)($payload['os_id']    ?? '');
+        $fotoUrl  = trim((string)($payload['foto_url'] ?? ''));
 
         if ($mensagem === '') {
             throw new RuntimeException('Payload sem mensagem.');
@@ -53,7 +54,11 @@ final class NotificarClienteJob
 
         if ($telefone !== '') {
             try {
-                if ($this->enviarWhatsapp($telefone, $mensagem)) {
+                $enviadoWhatsapp = $fotoUrl !== ''
+                    ? $this->enviarMidia($telefone, $mensagem, $fotoUrl)
+                    : $this->enviarWhatsapp($telefone, $mensagem);
+
+                if ($enviadoWhatsapp) {
                     $enviou = true;
                     $this->logar("[OS {$osId}] WhatsApp enviado para {$telefone}");
                 }
@@ -114,14 +119,12 @@ final class NotificarClienteJob
             return false; // não configurado
         }
 
-        // Normaliza para formato internacional BR (assume DDD se vier sem 55).
-        $numero = preg_replace('/\D/', '', $telefone) ?? '';
-        if ($numero === '') return false;
-        if (!str_starts_with($numero, '55')) $numero = '55' . $numero;
+        $destino = $this->normalizarDestinoWhatsapp($telefone);
+        if ($destino === null) return false;
 
         $endpoint = rtrim($url, '/') . '/message/sendText/' . rawurlencode($instance);
         $body = json_encode([
-            'number' => $numero,
+            'number' => $destino,
             'text'   => $mensagem,
         ], JSON_UNESCAPED_UNICODE);
 
@@ -145,8 +148,141 @@ final class NotificarClienteJob
             throw new RuntimeException("HTTP {$code} {$err}");
         }
 
-        error_log("[WhatsApp][SENT] Para: {$numero} | HTTP {$code}");
+        error_log("[WhatsApp][SENT] Para: {$destino} | HTTP {$code}");
         return true;
+    }
+
+    private function enviarMidia(string $telefone, string $mensagem, string $fotoUrl): bool
+    {
+        $fotoLocal = $this->resolverFotoLocal($fotoUrl);
+        if ($fotoLocal === null) {
+            error_log("[WhatsApp][MEDIA-FALLBACK] Foto indisponivel ({$fotoUrl}); enviando texto.");
+            return $this->enviarWhatsapp($telefone, $mensagem);
+        }
+
+        $enabled = filter_var($this->env('WHATSAPP_ENABLED', 'false'), FILTER_VALIDATE_BOOLEAN);
+        $dryRun = filter_var($this->env('WHATSAPP_DRY_RUN', 'true'), FILTER_VALIDATE_BOOLEAN);
+        $timeout = max(1, (int)$this->env('WHATSAPP_TIMEOUT', '3'));
+
+        if (!$enabled) {
+            error_log("[WhatsApp][DISABLED-MEDIA] Para: {$telefone} | Foto: {$fotoUrl}");
+            return false;
+        }
+
+        $stmt = $this->pdo->prepare("SELECT valor FROM configuracoes WHERE chave = 'whatsapp_enabled'");
+        $stmt->execute();
+        $dbEnabled = ($stmt->fetchColumn() ?: '0') === '1';
+        if (!$dbEnabled) {
+            error_log("[WhatsApp][DB-DISABLED-MEDIA] Para: {$telefone} | desligado via configurações do sistema.");
+            return false;
+        }
+
+        if ($dryRun) {
+            error_log("[WhatsApp][DRY-RUN-MEDIA] Para: {$telefone} | Foto: {$fotoUrl} | Msg: " . substr($mensagem, 0, 80));
+            return true;
+        }
+
+        $url      = $this->env('WHATSAPP_API_URL');
+        $apiKey   = $this->env('WHATSAPP_API_KEY');
+        $instance = $this->env('WHATSAPP_INSTANCE');
+
+        if ($url === '' || $apiKey === '' || $instance === '') {
+            return false;
+        }
+
+        $destino = $this->normalizarDestinoWhatsapp($telefone);
+        if ($destino === null) return false;
+
+        $conteudo = file_get_contents($fotoLocal);
+        if ($conteudo === false || $conteudo === '') {
+            error_log("[WhatsApp][MEDIA-FALLBACK] Falha ao ler foto ({$fotoLocal}); enviando texto.");
+            return $this->enviarWhatsapp($telefone, $mensagem);
+        }
+
+        $mime = mime_content_type($fotoLocal) ?: 'image/jpeg';
+        $base64 = base64_encode($conteudo);
+        $endpoint = rtrim($url, '/') . '/message/sendMedia/' . rawurlencode($instance);
+        $body = json_encode([
+            'number'    => $destino,
+            'mediatype' => 'image',
+            'mimetype'  => $mime,
+            'caption'   => $mensagem,
+            'media'     => $base64,
+            'fileName'  => 'foto_recepcao.jpg',
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'apikey: ' . $apiKey,
+            ],
+        ]);
+        $response = curl_exec($ch);
+        $code     = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err      = curl_error($ch);
+        curl_close($ch);
+
+        if ($response === false || $code >= 400) {
+            error_log("[WhatsApp][ERROR-MEDIA] Para: {$destino} | HTTP {$code} {$err}");
+            return false;
+        }
+
+        error_log("[WhatsApp][SENT-MEDIA] Para: {$destino} | HTTP {$code}");
+        return true;
+    }
+
+    private function normalizarDestinoWhatsapp(string $telefone): ?string
+    {
+        $telefone = trim($telefone);
+        if ($telefone === '') {
+            return null;
+        }
+
+        if (str_contains($telefone, '@')) {
+            return $telefone;
+        }
+
+        $numero = preg_replace('/\D/', '', $telefone) ?? '';
+        if ($numero === '') {
+            return null;
+        }
+        if (!str_starts_with($numero, '55')) {
+            $numero = '55' . $numero;
+        }
+        return $numero;
+    }
+
+    private function resolverFotoLocal(string $fotoUrl): ?string
+    {
+        $fotoUrl = trim($fotoUrl);
+        if ($fotoUrl === '' || preg_match('#^https?://#i', $fotoUrl)) {
+            return null;
+        }
+
+        $basePath = defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__, 2);
+        $candidatos = [];
+
+        if (str_starts_with($fotoUrl, '/')) {
+            $candidatos[] = $basePath . '/public' . $fotoUrl;
+            $candidatos[] = $basePath . $fotoUrl;
+        } else {
+            $candidatos[] = $basePath . '/public/' . $fotoUrl;
+            $candidatos[] = $basePath . '/' . $fotoUrl;
+        }
+
+        foreach (array_unique($candidatos) as $path) {
+            if (is_file($path) && is_readable($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     private function enviarEmail(string $para, string $assunto, string $mensagem): bool

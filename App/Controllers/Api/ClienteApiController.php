@@ -130,6 +130,7 @@ final class ClienteApiController
             'telefone' => $request->input('telefone', ''),
             'telefone2'=> $request->input('telefone2', ''),
             'celular'  => $request->input('celular', ''),
+            'whatsapp' => $request->input('whatsapp', ''),
             'fone'     => $request->input('fone', ''),
         ];
         

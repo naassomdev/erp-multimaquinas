@@ -20,7 +20,7 @@ final class ClienteDuplicadosController
 {
     private const CAMPOS_COPIÁVEIS = [
         'nome', 'nome_fantasia', 'cpf_cnpj', 'telefone', 'telefone2',
-        'celular', 'fone', 'email', 'endereco', 'numero', 'complemento',
+        'celular', 'whatsapp', 'fone', 'email', 'endereco', 'numero', 'complemento',
         'bairro', 'cidade', 'uf', 'cep',
     ];
 

@@ -206,7 +206,13 @@ $waLink = "https://wa.me/{$waTel}?text=" . rawurlencode($waText);
                                 <span class="fw-medium"><?= View::e($os['contato_nome']) ?></span>
                             <?php endif; ?>
                             <?php if (!empty($os['contato_telefone'])): ?>
-                                <span class="text-mono text-body-secondary ms-2"><?= View::e($os['contato_telefone']) ?></span>
+                                <?php $contatoTelefone = (string) $os['contato_telefone']; ?>
+                                <span class="text-mono text-body-secondary ms-2"><?= View::e($contatoTelefone) ?></span>
+                                <?php if (str_contains($contatoTelefone, '@g.us')): ?>
+                                    <span class="badge text-bg-info ms-1"><i class="ph ph-whatsapp-logo me-1"></i>Grupo</span>
+                                <?php else: ?>
+                                    <span class="badge text-bg-success ms-1"><i class="ph ph-whatsapp-logo me-1"></i>WA</span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </dd>
                         <?php endif; ?>

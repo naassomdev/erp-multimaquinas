@@ -123,6 +123,14 @@ $ufAtual = strtoupper($v('uf'));
                                placeholder="(00) 00000-0000" class="form-control text-mono">
                     </div>
                     <div class="col-md-6">
+                        <label class="form-label">WhatsApp / Grupo</label>
+                        <input type="text" name="whatsapp" id="whatsapp" value="<?= View::e($v('whatsapp')) ?>"
+                               placeholder="(11) 9xxxx-xxxx ou 120363...@g.us" class="form-control text-mono">
+                        <div class="form-text">
+                            Numero pessoal (11 9xxxx-xxxx) ou JID de grupo (120363...@g.us).
+                        </div>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">E-mail</label>
                         <input type="email" name="email" value="<?= View::e($v('email')) ?>"
                                placeholder="cliente@email.com" class="form-control">
@@ -417,6 +425,7 @@ function maskPhone(el) {
 maskPhone(document.getElementById('telefone'));
 maskPhone(document.getElementById('celular'));
 document.querySelector('[name="telefone2"]')?.addEventListener('input', agendarVerificacaoDuplicidade);
+document.getElementById('whatsapp')?.addEventListener('input', agendarVerificacaoDuplicidade);
 document.querySelector('[name="email"]')?.addEventListener('input', agendarVerificacaoDuplicidade);
 
 // -- Auto-busca CEP ao digitar 8 digitos
@@ -449,13 +458,14 @@ async function verificarDuplicidade() {
         telefone: document.getElementById('telefone')?.value || '',
         telefone2: document.querySelector('[name="telefone2"]')?.value || '',
         celular: document.getElementById('celular')?.value || '',
+        whatsapp: document.getElementById('whatsapp')?.value || '',
         fone: document.querySelector('[name="fone"]')?.value || '',
         id: clienteIdAtual
     };
     
     // Ignora se estiver tudo vazio ou só cpf incompleto
     const numCpf = dados.cpf_cnpj.replace(/\D/g, '');
-    if (numCpf.length < 11 && dados.email.length < 5 && dados.telefone.length < 8 && dados.celular.length < 8 && dados.telefone2.length < 8) {
+    if (numCpf.length < 11 && dados.email.length < 5 && dados.telefone.length < 8 && dados.celular.length < 8 && dados.telefone2.length < 8 && dados.whatsapp.length < 8) {
         alertaDiv.classList.add('d-none');
         return;
     }

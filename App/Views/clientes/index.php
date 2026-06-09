@@ -16,6 +16,7 @@ $ufs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','P
 $clientesPagina = count($clientes);
 $clientesComEmail = 0;
 $clientesComCelular = 0;
+$clientesComWhatsappContato = 0;
 $ufsNaBusca = [];
 
 $getDigits = static fn(?string $value): string => preg_replace('/\D+/', '', (string) $value) ?? '';
@@ -49,10 +50,23 @@ foreach ($clientes as $cliente) {
     if (!empty($cliente['celular'])) {
         $clientesComCelular++;
     }
+    if (!empty($cliente['whatsapp']) || !empty($cliente['celular'])) {
+        $clientesComWhatsappContato++;
+    }
     if (!empty($cliente['uf'])) {
         $ufsNaBusca[mb_strtoupper((string) $cliente['uf'])] = true;
     }
 }
+
+$waBadge = static function (?string $whatsapp): string {
+    $valor = trim((string) $whatsapp);
+    if ($valor === '') {
+        return '';
+    }
+    $label = str_contains($valor, '@g.us') ? 'Grupo' : 'WA';
+    $class = str_contains($valor, '@g.us') ? 'text-bg-info' : 'text-bg-success';
+    return '<span class="badge ' . $class . ' ms-1"><i class="ph ph-whatsapp-logo me-1"></i>' . $label . '</span>';
+};
 ?>
 
 <div class="clientes-page d-flex flex-column gap-4">
@@ -89,9 +103,9 @@ foreach ($clientes as $cliente) {
             <span class="clientes-kpi__hint">Registros carregados com os filtros atuais.</span>
         </article>
         <article class="clientes-kpi">
-            <span class="clientes-kpi__label">Com celular</span>
-            <strong class="clientes-kpi__value"><?= number_format($clientesComCelular, 0, ',', '.') ?></strong>
-            <span class="clientes-kpi__hint">Facilita contato rapido por WhatsApp.</span>
+            <span class="clientes-kpi__label">Com WhatsApp</span>
+            <strong class="clientes-kpi__value"><?= number_format($clientesComWhatsappContato, 0, ',', '.') ?></strong>
+            <span class="clientes-kpi__hint">Campo dedicado ou celular nesta pagina.</span>
         </article>
         <article class="clientes-kpi">
             <span class="clientes-kpi__label">UFs visiveis</span>
@@ -209,8 +223,11 @@ foreach ($clientes as $cliente) {
                                 <span class="mobile-record-card__value text-mono small"><?= View::e($c['telefone'] ?: ($c['telefone2'] ?? '—')) ?></span>
                             </div>
                             <div class="mobile-record-card__row">
-                                <span class="mobile-record-card__label">Celular</span>
-                                <span class="mobile-record-card__value text-mono small"><?= View::e($c['celular'] ?: '—') ?></span>
+                                <span class="mobile-record-card__label">WhatsApp</span>
+                                <span class="mobile-record-card__value text-mono small">
+                                    <?= View::e(($c['whatsapp'] ?? '') ?: ($c['celular'] ?: '—')) ?>
+                                    <?= $waBadge($c['whatsapp'] ?? '') ?>
+                                </span>
                             </div>
                         </div>
 
@@ -254,7 +271,7 @@ foreach ($clientes as $cliente) {
                             <th>Cliente</th>
                             <th>CPF / CNPJ</th>
                             <th>Telefone</th>
-                            <th>Celular</th>
+                            <th>WhatsApp</th>
                             <th>E-mail</th>
                             <th>Cidade / UF</th>
                             <th class="text-end">Acoes</th>
@@ -300,7 +317,10 @@ foreach ($clientes as $cliente) {
                             <td class="text-nowrap">
                                 <div class="clientes-contact">
                                     <span class="clientes-contact__label">WhatsApp</span>
-                                    <span class="text-mono small"><?= View::e($c['celular'] ?: '—') ?></span>
+                                    <span class="text-mono small">
+                                        <?= View::e(($c['whatsapp'] ?? '') ?: ($c['celular'] ?: '—')) ?>
+                                        <?= $waBadge($c['whatsapp'] ?? '') ?>
+                                    </span>
                                 </div>
                             </td>
                             <td>

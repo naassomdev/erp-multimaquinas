@@ -794,8 +794,8 @@ final class OrcamentoService
             );
         }
 
-        // 10F-1: prioridade celular → telefone2 → fone → telefone via ClienteHelper.
-        $telefone = ClienteHelper::telefoneParaWhatsapp($dados);
+        // 10F-1: prioridade contato_telefone da OS → celular → telefone2 → fone → telefone.
+        $telefone = ClienteHelper::telefoneParaWhatsapp($dados, (string) ($dados['contato_telefone'] ?? ''));
         if ($telefone === null) {
             throw new InvalidArgumentException(
                 'Não foi encontrado WhatsApp válido para este cliente. ' .
@@ -806,7 +806,9 @@ final class OrcamentoService
         $itens = $this->repo->listarItens($orcId);
         $jaEnviadoHojeNaOs = $this->repo->existeOrcamentoEnviadoHojeNaOs((string) ($dados['os_id'] ?? ''));
         $mensagem = $this->montarMensagemWhatsappOrcamento($dados, $itens, !$jaEnviadoHojeNaOs);
-        $wppUrl   = 'https://wa.me/' . $telefone . '?text=' . rawurlencode($mensagem);
+        $wppUrl = str_contains($telefone, '@')
+            ? 'https://web.whatsapp.com/send?text=' . rawurlencode($mensagem)
+            : 'https://wa.me/' . $telefone . '?text=' . rawurlencode($mensagem);
 
         if ($registrarEnvio) {
             // Registra data/hora apenas quando o usuário confirma o envio.
@@ -1269,8 +1271,9 @@ final class OrcamentoService
                 return;
             }
 
-            $telefone = ClienteHelper::telefoneParaWhatsapp($dados);
+            $telefone = ClienteHelper::telefoneParaWhatsapp($dados, (string) ($dados['contato_telefone'] ?? ''));
             $osId = (string) ($orcAntes['os_id'] ?? '');
+            $fotoUrl = $this->primeiraFotoRecepcao($dados);
 
             if ($telefone === null || $telefone === '') {
                 error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}): sem telefone WA — ignorado.");
@@ -1284,10 +1287,38 @@ final class OrcamentoService
                 'telefone' => $telefone,
                 'mensagem' => $mensagem,
                 'os_id'    => $osId,
+                'foto_url' => $fotoUrl,
             ]);
         } catch (Throwable $e) {
             error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}) falhou: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Retorna a primeira foto capturada na recepção, quando existir.
+     *
+     * @param array<string, mixed> $dados
+     */
+    private function primeiraFotoRecepcao(array $dados): string
+    {
+        $json = trim((string) ($dados['fotos_os_json'] ?? ''));
+        if ($json === '') {
+            return '';
+        }
+
+        $fotos = json_decode($json, true);
+        if (!is_array($fotos)) {
+            return '';
+        }
+
+        foreach ($fotos as $foto) {
+            $url = trim((string) $foto);
+            if ($url !== '') {
+                return $url;
+            }
+        }
+
+        return '';
     }
 
     /**
