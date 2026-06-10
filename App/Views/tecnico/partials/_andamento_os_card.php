@@ -64,12 +64,6 @@ use App\Core\View;
                         </button>
                     <?php endforeach; ?>
                 </div>
-                <?php elseif (!empty($resumoAndamento['acao_principal'])): ?>
-                <div class="tecnico-summary-card__action">
-                    <a href="<?= View::e((string) $resumoAndamento['acao_principal']['href']) ?>" class="btn <?= View::e((string) $resumoAndamento['acao_principal']['class']) ?> w-100">
-                        <?= View::e((string) $resumoAndamento['acao_principal']['label']) ?>
-                    </a>
-                </div>
                 <?php endif; ?>
             </div>
         </article>

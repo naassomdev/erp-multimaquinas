@@ -247,7 +247,6 @@ $resumoClienteSolicitacao = [
     'prazo'               => $prazoResumo,
 ];
 
-$acaoPrincipal = null;
 $acoesAndamento = [];
 if ($podeConcluirDiagnostico) {
     $acoesAndamento[] = [
@@ -268,16 +267,6 @@ if ($mostrarBtnSemConserto) {
         'title' => 'Use quando o equipamento não tiver conserto viável ou peças disponíveis.',
     ];
 }
-if ($mostrarBannerIniciarMontagem) {
-    $acaoPrincipal = ['href' => '#btn-iniciar-montagem', 'label' => 'Iniciar montagem agora', 'class' => 'btn-success'];
-} elseif ($mostrarBtnRemontar) {
-    $acaoPrincipal = ['href' => '#btn-remontar-equipamento', 'label' => 'Remontar equipamento', 'class' => 'btn-warning'];
-} elseif ($mostrarBannerMontagemAndamento) {
-    $acaoPrincipal = ['href' => '#btn-marcar-pronto', 'label' => 'Marcar como pronto', 'class' => 'btn-primary'];
-} elseif ($mostrarBannerDevolucao) {
-    $acaoPrincipal = ['href' => '#btn-marcar-pronto-devolucao', 'label' => 'Marcar pronto para devolucao', 'class' => 'btn-warning'];
-}
-
 $resumoAndamento = [
     'status_atual' => $statusEq,
     'status_badge' => $badgeCls,
@@ -286,7 +275,6 @@ $resumoAndamento = [
     'situacao_comercial_badge' => $orcAvisoCls,
     'observacao_comercial' => $orcAvisoTxt,
     'acoes' => $acoesAndamento,
-    'acao_principal' => $acaoPrincipal,
 ];
 ?>
 

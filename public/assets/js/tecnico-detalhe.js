@@ -509,9 +509,10 @@
                     bannerEl = document.createElement('div');
                     bannerEl.id = 'banner-montagem-andamento';
                     bannerEl.className = 'alert alert-primary py-2 mb-0 small';
-                    bannerEl.innerHTML = '<i class="ph ph-wrench me-1"></i> <strong>Montagem/conserto em andamento.</strong><br><span class="text-body-secondary">Quando finalizar, marque este equipamento como Pronto.</span>';
+                    bannerEl.innerHTML = '<i class="ph ph-wrench me-1"></i> <strong>Montagem/conserto em andamento.</strong><br><span class="text-body-secondary">Quando finalizar, marque este equipamento como Pronto.</span><div class="mt-2"><button type="button" id="btn-marcar-pronto" class="btn btn-primary btn-sm" title="Conserto/montagem concluído. A recepção poderá registrar a retirada."><i class="ph ph-check-circle me-1"></i> Marcar como pronto</button></div>';
                     const obsInput = byId('obs-append');
                     if (obsInput) obsInput.parentNode.insertBefore(bannerEl, obsInput);
+                    bindMarcarPronto(byId('btn-marcar-pronto'));
                 }
                 toast('Montagem iniciada.');
             } catch (e) {
@@ -693,11 +694,14 @@
     });
 
     // ── Marcar como pronto (conserto aprovado em montagem) ────────────────────
-    const btnMarcarPronto = byId('btn-marcar-pronto');
-    if (btnMarcarPronto) {
-        btnMarcarPronto.addEventListener('click', async () => {
+    // Definida como função (hoisted) para ligar tanto o botão renderizado no
+    // load quanto o criado dinamicamente ao iniciar a montagem sem reload.
+    function bindMarcarPronto(btn) {
+        if (!btn || btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', async () => {
             if (!window.confirm('Confirmar que o conserto foi concluído?')) return;
-            btnMarcarPronto.disabled = true;
+            btn.disabled = true;
             try {
                 const r = await api(
                     'PATCH',
@@ -711,10 +715,11 @@
                 toast('Equipamento marcado como pronto.');
             } catch (e) {
                 toast('Erro: ' + e.message, 'err');
-                btnMarcarPronto.disabled = false;
+                btn.disabled = false;
             }
         });
     }
+    bindMarcarPronto(byId('btn-marcar-pronto'));
 
     // ── Marcar como pronto para devolução (remontagem cancelada concluída) ────
     const btnMarcarProntoDev = byId('btn-marcar-pronto-devolucao');
