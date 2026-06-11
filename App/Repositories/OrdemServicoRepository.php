@@ -165,6 +165,68 @@ final class OrdemServicoRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Busca global do topo: localiza OS por ID, nome do cliente, telefone ou
+     * pelos dados do equipamento (série, nome, fabricante, modelo).
+     * Retorna um resumo da OS + lista de equipamentos/séries para exibição.
+     */
+    public function buscarGlobal(string $termo, int $limit = 12): array
+    {
+        $termo = trim($termo);
+        if ($termo === '') return [];
+
+        $like    = '%' . $termo . '%';
+        $digitos = preg_replace('/\D/', '', $termo);
+
+        // Cláusulas OR montadas dinamicamente — telefone só entra se houver
+        // ao menos 3 dígitos no termo (evita casar com qualquer coisa).
+        $ors = [
+            'o.id LIKE :like_id',
+            'o.nome_cliente LIKE :like_nome',
+            "EXISTS (SELECT 1 FROM os_equipamento e2
+                      WHERE e2.os_id = o.id
+                        AND (e2.serie LIKE :like_serie
+                          OR e2.nome LIKE :like_eqnome
+                          OR e2.fabricante LIKE :like_fab
+                          OR e2.modelo LIKE :like_mod))",
+        ];
+        $params = [
+            ':like_id'     => $like,
+            ':like_nome'   => $like,
+            ':like_serie'  => $like,
+            ':like_eqnome' => $like,
+            ':like_fab'    => $like,
+            ':like_mod'    => $like,
+        ];
+        if (strlen((string) $digitos) >= 3) {
+            $ors[] = "REPLACE(REPLACE(REPLACE(REPLACE(o.telefone, '(', ''), ')', ''), '-', ''), ' ', '') LIKE :like_tel";
+            $params[':like_tel'] = '%' . $digitos . '%';
+        }
+
+        $sql = "SELECT
+                    o.id, o.data_entrada, o.nome_cliente, o.telefone, o.status,
+                    o.created_at,
+                    GROUP_CONCAT(DISTINCT eq.nome ORDER BY eq.ordem_idx SEPARATOR ', ') AS equipamentos,
+                    GROUP_CONCAT(DISTINCT NULLIF(eq.serie, '') SEPARATOR ', ')          AS series,
+                    COUNT(DISTINCT eq.id) AS qtd_equipamentos
+                  FROM ordem_servico o
+             LEFT JOIN os_equipamento eq ON eq.os_id = o.id
+                 WHERE " . implode("\n                    OR ", $ors) . "
+              GROUP BY o.id
+              ORDER BY (o.id = :exato) DESC, o.created_at DESC
+                 LIMIT :lim";
+
+        $params[':exato'] = $termo;
+
+        $stmt = Database::pdo()->prepare($sql);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function buscarStatus(string $id): ?string
     {
         $sql = "SELECT status FROM ordem_servico WHERE id = :id LIMIT 1";

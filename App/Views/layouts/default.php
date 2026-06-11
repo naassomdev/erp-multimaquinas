@@ -15,6 +15,9 @@
 
     <?= \App\Core\Vite::tags(['resources/js/app.js', 'resources/scss/app.scss']) ?>
 
+    <?php $buscaGlobalCssVer = substr(md5_file(BASE_PATH . '/public/assets/css/busca-global.css'), 0, 8); ?>
+    <link rel="stylesheet" href="/assets/css/busca-global.css?v=<?= $buscaGlobalCssVer ?>">
+
     <?php if (\App\Core\Auth::check() && in_array((string) (\App\Core\Auth::user()['nivel_acesso'] ?? ''), ['admin', 'recepcao', 'oficina'], true)): ?>
         <?php $notifCssVer = substr(md5_file(BASE_PATH . '/public/assets/css/tecnico-notif.css'), 0, 8); ?>
         <link rel="stylesheet" href="/assets/css/tecnico-notif.css?v=<?= $notifCssVer ?>">
@@ -192,7 +195,7 @@
                 <!-- Busca global (desktop) -->
                 <div class="app-topbar__search">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="search" placeholder="Buscar OS, cliente, peca...">
+                    <input type="search" id="busca-global" autocomplete="off" placeholder="Buscar OS, cliente, equipamento, série...">
                 </div>
 
                 <?php if (in_array((string) $nivel, ['admin', 'recepcao', 'oficina'], true)): ?>
@@ -290,6 +293,9 @@
         <?php $notifJsVer = substr(md5_file(BASE_PATH . '/public/assets/js/tecnico-notif.js'), 0, 8); ?>
         <script src="/assets/js/tecnico-notif.js?v=<?= $notifJsVer ?>" defer></script>
     <?php endif; ?>
+
+    <?php $buscaGlobalJsVer = substr(md5_file(BASE_PATH . '/public/assets/js/busca-global.js'), 0, 8); ?>
+    <script src="/assets/js/busca-global.js?v=<?= $buscaGlobalJsVer ?>" defer></script>
 
 <?php else: ?>
     <!-- Login (sem chrome) -->

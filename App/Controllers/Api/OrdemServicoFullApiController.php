@@ -319,21 +319,10 @@ final class OrdemServicoFullApiController
         }
 
         $repo = new OrdemServicoRepository();
-        
-        // Se parece número, busca por telefone
-        $digitos = preg_replace('/\D/', '', $q);
-        if (strlen($digitos) >= 8) {
-            $resultados = $repo->buscarComResumoPorTelefone($q, 10);
-            return Response::json(['ok' => true, 'ordens' => $resultados]);
-        }
 
-        // Se for um ID
-        $os = $repo->buscarPorId($q);
-        if ($os) {
-            $os['equipamentos'] = ''; // Pode preencher com os equipamentos se desejar
-            return Response::json(['ok' => true, 'ordens' => [$os]]);
-        }
-
-        return Response::json(['ok' => true, 'ordens' => []]);
+        // Busca unificada: ID da OS, nome/telefone do cliente e equipamento
+        // (série, nome, fabricante, modelo).
+        $resultados = $repo->buscarGlobal($q, 12);
+        return Response::json(['ok' => true, 'ordens' => $resultados]);
     }
 }
