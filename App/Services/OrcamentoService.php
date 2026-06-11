@@ -1003,6 +1003,9 @@ final class OrcamentoService
             $itens
         );
         $textoItens = $this->normalizarTextoBusca(implode(' ', $descricoes));
+        if (preg_match('/\bREBOBINAMENTO\b/u', $textoItens)) {
+            return 5;
+        }
         if (preg_match('/\bRECONDICIONAD[OA]S?\b/u', $textoItens)) {
             return 20;
         }
@@ -1273,7 +1276,6 @@ final class OrcamentoService
 
             $telefone = ClienteHelper::telefoneParaWhatsapp($dados, (string) ($dados['contato_telefone'] ?? ''));
             $osId = (string) ($orcAntes['os_id'] ?? '');
-            $fotoUrl = $this->primeiraFotoRecepcao($dados);
 
             if ($telefone === null || $telefone === '') {
                 error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}): sem telefone WA — ignorado.");
@@ -1287,38 +1289,10 @@ final class OrcamentoService
                 'telefone' => $telefone,
                 'mensagem' => $mensagem,
                 'os_id'    => $osId,
-                'foto_url' => $fotoUrl,
             ]);
         } catch (Throwable $e) {
             error_log("[OrcamentoService] notificarClienteAprovacao(orc#{$orcId}) falhou: " . $e->getMessage());
         }
-    }
-
-    /**
-     * Retorna a primeira foto capturada na recepção, quando existir.
-     *
-     * @param array<string, mixed> $dados
-     */
-    private function primeiraFotoRecepcao(array $dados): string
-    {
-        $json = trim((string) ($dados['fotos_os_json'] ?? ''));
-        if ($json === '') {
-            return '';
-        }
-
-        $fotos = json_decode($json, true);
-        if (!is_array($fotos)) {
-            return '';
-        }
-
-        foreach ($fotos as $foto) {
-            $url = trim((string) $foto);
-            if ($url !== '') {
-                return $url;
-            }
-        }
-
-        return '';
     }
 
     /**

@@ -150,6 +150,7 @@ return [
     ['GET',  '/os/nova',          [OrdemServicoController::class, 'criar'],     [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['POST', '/os',               [OrdemServicoController::class, 'salvar'],    [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET',  '/os/{id}',          [OrdemServicoController::class, 'detalhe'],   [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['POST', '/os/{id}/whatsapp', [OrdemServicoController::class, 'enviarWhatsapp'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET',  '/os/{id}/editar',   [OrdemServicoController::class, 'editar'],    [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['POST', '/os/{id}',          [OrdemServicoController::class, 'atualizar'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET',  '/os/{id}/imprimir', [OrdemServicoController::class, 'imprimir'],  [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],

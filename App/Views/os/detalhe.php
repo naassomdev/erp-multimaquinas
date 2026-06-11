@@ -31,8 +31,13 @@ $stLabel = match ($st) {
     default      => ucfirst($st),
 };
 
-$waTel = preg_replace('/\D/', '', $os['telefone'] ?? '');
-if (strlen($waTel) === 10 || strlen($waTel) === 11) $waTel = '55' . $waTel;
+$waTel = ClienteHelper::telefoneParaWhatsapp([
+    'telefone' => (string) ($os['telefone'] ?? ''),
+]) ?? '';
+$contatoTel = trim((string) ($os['contato_telefone'] ?? ''));
+$waDestino = $contatoTel !== ''
+    ? ClienteHelper::telefoneParaWhatsapp([], $contatoTel)
+    : $waTel;
 $nomeClienteWhatsapp = ClienteHelper::nomeParaMensagem(['nome_cliente' => (string) ($os['nome_cliente'] ?? '')]);
 
 // True quando todos os equipamentos têm status_equip='pronto'.
@@ -96,7 +101,18 @@ $waText .= $emGarantiaWhatsapp
     ? "Assim que a análise da garantia estiver pronta, avisaremos.\n\n"
     : "Assim que o orçamento estiver pronto, avisaremos.\n\n";
 $waText .= "Obrigado pela confiança! — Multimáquinas";
-$waLink = "https://wa.me/{$waTel}?text=" . rawurlencode($waText);
+
+$fotoModalUrl = '';
+foreach ($equipamentos as $equipamentoFoto) {
+    if ((int) ($equipamentoFoto['ordem_idx'] ?? -1) !== 0) {
+        continue;
+    }
+    $fotosArr = json_decode((string) ($equipamentoFoto['fotos_os_json'] ?? '[]'), true);
+    if (is_array($fotosArr) && !empty($fotosArr[0])) {
+        $fotoModalUrl = trim((string) $fotosArr[0]);
+    }
+    break;
+}
 ?>
 
 <div class="d-flex flex-column gap-4">
@@ -118,10 +134,18 @@ $waLink = "https://wa.me/{$waTel}?text=" . rawurlencode($waText);
             <a href="/os" class="btn btn-outline-secondary">
                 <i class="ph ph-arrow-left me-1"></i> Voltar
             </a>
-            <?php if (!empty($waTel)): ?>
-                <a href="<?= $waLink ?>" target="_blank" class="btn btn-outline-success">
+            <?php if (!empty($waDestino)): ?>
+                <button type="button"
+                        class="btn btn-outline-success"
+                        id="btn-wa-os"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalWaOs"
+                        data-tel="<?= View::e($waDestino) ?>"
+                        data-msg="<?= View::e($waText) ?>"
+                        data-foto="<?= View::e($fotoModalUrl) ?>"
+                        data-os="<?= View::e((string) ($os['id'] ?? '')) ?>">
                     <i class="ph ph-whatsapp-logo me-1"></i> WhatsApp
-                </a>
+                </button>
             <?php endif; ?>
             <a href="/os/<?= View::e($os['id']) ?>/imprimir" target="_blank" class="btn btn-outline-secondary">
                 <i class="ph ph-printer me-1"></i> Imprimir
@@ -995,7 +1019,129 @@ $waLink = "https://wa.me/{$waTel}?text=" . rawurlencode($waText);
     </div>
 </div>
 
+<!-- Modal WhatsApp OS -->
+<div class="modal fade" id="modalWaOs" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ph ph-whatsapp-logo me-2 text-success"></i>Enviar WhatsApp
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-1">Destinatario</p>
+                <p class="mb-3 fw-semibold text-mono" id="wa-modal-tel">—</p>
+
+                <p class="text-muted small mb-1">Mensagem</p>
+                <pre class="bg-light rounded p-2 small mb-0" style="white-space:pre-wrap;max-height:180px;overflow-y:auto" id="wa-modal-msg"></pre>
+
+                <div id="wa-modal-foto-wrap" class="mt-3 d-none">
+                    <p class="text-muted small mb-1">Foto da recepcao</p>
+                    <img id="wa-modal-foto" src="" alt="Foto da recepcao" class="rounded" style="max-height:120px;object-fit:cover;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="wa-modal-enviar">
+                    <i class="ph ph-paper-plane-tilt me-1"></i> Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+(function () {
+    const btnWa     = document.getElementById('btn-wa-os');
+    const btnEnviar = document.getElementById('wa-modal-enviar');
+    const modalEl   = document.getElementById('modalWaOs');
+    if (!btnWa || !btnEnviar || !modalEl) return;
+
+    const elTel      = document.getElementById('wa-modal-tel');
+    const elMsg      = document.getElementById('wa-modal-msg');
+    const elFotoWrap = document.getElementById('wa-modal-foto-wrap');
+    const elFoto     = document.getElementById('wa-modal-foto');
+
+    let dadosEnvio = {};
+
+    modalEl.addEventListener('show.bs.modal', function () {
+        dadosEnvio = {
+            tel: btnWa.dataset.tel || '',
+            msg: btnWa.dataset.msg || '',
+            foto: btnWa.dataset.foto || '',
+            osId: btnWa.dataset.os || '',
+        };
+
+        elTel.textContent = dadosEnvio.tel || '-';
+        elMsg.textContent = dadosEnvio.msg || '';
+
+        if (dadosEnvio.foto) {
+            elFoto.src = dadosEnvio.foto;
+            elFotoWrap.classList.remove('d-none');
+        } else {
+            elFoto.removeAttribute('src');
+            elFotoWrap.classList.add('d-none');
+        }
+
+        btnEnviar.disabled = false;
+        btnEnviar.innerHTML = '<i class="ph ph-paper-plane-tilt me-1"></i> Enviar';
+    });
+
+    btnEnviar.addEventListener('click', function () {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Enviando...';
+
+        fetch('/os/' + encodeURIComponent(dadosEnvio.osId) + '/whatsapp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ mensagem: dadosEnvio.msg, telefone: dadosEnvio.tel }),
+        })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+            const bsModal = window.bootstrap ? bootstrap.Modal.getInstance(modalEl) : null;
+            if (bsModal) bsModal.hide();
+            if (data.success) {
+                btnWa.classList.remove('btn-outline-success');
+                btnWa.classList.add('btn-success');
+                btnWa.removeAttribute('data-bs-toggle');
+                btnWa.innerHTML = '<i class="ph ph-check me-1"></i> WhatsApp Enviado';
+                btnWa.disabled = true;
+                mostrarToast('✓ Mensagem enviada via WhatsApp!', 'success');
+            } else {
+                mostrarToast('✗ ' + (data.error || 'Erro ao enviar.'), 'danger');
+                btnEnviar.disabled = false;
+                btnEnviar.innerHTML = '<i class="ph ph-paper-plane-tilt me-1"></i> Enviar';
+            }
+        })
+        .catch(function () {
+            const bsModal = window.bootstrap ? bootstrap.Modal.getInstance(modalEl) : null;
+            if (bsModal) bsModal.hide();
+            mostrarToast('✗ Erro de conexao. Verifique os logs.', 'danger');
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="ph ph-paper-plane-tilt me-1"></i> Enviar';
+        });
+    });
+
+    function mostrarToast(msg, tipo) {
+        const id = 'toast-wa-' + Date.now();
+        const el = document.createElement('div');
+        el.id = id;
+        el.className = 'alert alert-' + tipo + ' position-fixed bottom-0 end-0 m-3 shadow-lg';
+        el.style.cssText = 'z-index:9999;min-width:260px;font-weight:500';
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(function () {
+            const toast = document.getElementById(id);
+            if (toast) toast.remove();
+        }, 5000);
+    }
+}());
+
 document.querySelectorAll('.btn-status').forEach(btn => {
     btn.addEventListener('click', async (e) => {
         const novoStatus = e.currentTarget.getAttribute('data-status');

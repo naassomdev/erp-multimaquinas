@@ -11,6 +11,7 @@ use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\View;
+use App\Jobs\NotificarClienteJob;
 use App\Repositories\ConfiguracaoRepository;
 use App\Repositories\NecessidadeCompraRepository;
 use App\Repositories\OrcamentoRepository;
@@ -180,6 +181,56 @@ final class OrdemServicoController
             'notifRetirada'       => $notifRetirada,
             'mapaUsuarios'        => $mapaUsuarios,
         ]));
+    }
+
+    /**
+     * POST /os/{id}/whatsapp — envia mensagem da OS via Evolution.
+     */
+    public function enviarWhatsapp(Request $request, string $id): Response
+    {
+        $mensagem = trim((string) $request->input('mensagem', ''));
+        $telefone = trim((string) $request->input('telefone', ''));
+
+        if ($mensagem === '' || $telefone === '') {
+            return Response::json(['success' => false, 'error' => 'Dados insuficientes.'], 400);
+        }
+
+        $os = $this->repo->buscarPorId($id);
+        if ($os === null) {
+            return Response::json(['success' => false, 'error' => 'OS não encontrada.'], 404);
+        }
+
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            "SELECT fotos_os_json
+               FROM os_equipamento
+              WHERE os_id = :os_id AND ordem_idx = 0
+              LIMIT 1"
+        );
+        $stmt->execute([':os_id' => $id]);
+
+        $fotoUrl = '';
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ($row !== false) {
+            $fotos = json_decode((string) ($row['fotos_os_json'] ?? '[]'), true);
+            if (is_array($fotos) && !empty($fotos[0])) {
+                $fotoUrl = trim((string) $fotos[0]);
+            }
+        }
+
+        try {
+            (new NotificarClienteJob($pdo))->handle([
+                'telefone' => $telefone,
+                'mensagem' => $mensagem,
+                'os_id'    => $id,
+                'foto_url' => $fotoUrl,
+            ]);
+
+            return Response::json(['success' => true]);
+        } catch (\Throwable $e) {
+            error_log("[WA-OS] Erro ao enviar OS {$id}: " . $e->getMessage());
+            return Response::json(['success' => false, 'error' => 'Erro ao enviar. Tente novamente.'], 500);
+        }
     }
 
     /**
