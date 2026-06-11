@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
+use App\Repositories\ClienteRepository;
 use App\Repositories\NecessidadeCompraRepository;
 use App\Repositories\NotificacaoTecnicoRepository;
 use App\Repositories\OrcamentoRepository;
@@ -28,6 +29,8 @@ final class TecnicoService
         private readonly NotificacaoTecnicoRepository $notifRepo    = new NotificacaoTecnicoRepository(),
         private readonly ServicoTerceiroRepository $servicoTerceiroRepo = new ServicoTerceiroRepository(),
         private readonly AuditoriaService $audit = new AuditoriaService(),
+        private readonly ClienteRepository $clienteRepo = new ClienteRepository(),
+        private readonly NotificationService $notifier = new NotificationService(),
     ) {}
 
     /**
@@ -107,10 +110,67 @@ final class TecnicoService
             }
 
             $pdo->commit();
-            return $novoMacro;
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             throw $e;
+        }
+
+        // Pós-commit: notifica o cliente que ESTE equipamento ficou pronto.
+        // Fora da transação e em try/catch isolado — notificação é nice-to-have
+        // e jamais deve derrubar a marcação de status.
+        if ($novoStatus === 'pronto') {
+            $this->dispararNotificacaoEquipamentoPronto($osId, $equipIdx);
+        }
+
+        return $novoMacro;
+    }
+
+    /**
+     * Enfileira a notificação WhatsApp de "equipamento pronto" para o cliente.
+     * O valor exibido é o total do orçamento aprovado do equipamento; sem
+     * orçamento aprovado com valor, o NotificationService usa "Sem custo (garantia)".
+     */
+    private function dispararNotificacaoEquipamentoPronto(string $osId, int $equipIdx): void
+    {
+        try {
+            $os = $this->osRepo->buscarPorId($osId);
+            if ($os === null) {
+                return;
+            }
+
+            $equip = $this->equipRepo->buscar($osId, $equipIdx);
+            $equipNome = trim((string)($equip['nome'] ?? ''));
+
+            // Valor = total do orçamento, apenas quando aprovado.
+            $orc = $this->orcRepo->buscarPorOsEquip($osId, $equipIdx);
+            $valorTotal = null;
+            if ($orc !== null && ($orc['status'] ?? '') === 'aprovado') {
+                $valorTotal = (float)($orc['total'] ?? 0);
+            }
+
+            // Dados completos do cliente para prioridade de telefone (igual à abertura).
+            $cliExtra = [];
+            if (!empty($os['cliente_id'])) {
+                $cli = $this->clienteRepo->buscarPorId((int)$os['cliente_id']);
+                if ($cli) {
+                    $cliExtra = $cli;
+                }
+            }
+
+            $this->notifier->notificarEquipamentoPronto($osId, [
+                'nome'             => (string)($os['nome_cliente'] ?? ''),
+                'nome_fantasia'    => (string)($cliExtra['nome_fantasia'] ?? ''),
+                'contato_nome'     => (string)($os['contato_nome'] ?? ''),
+                'contato_telefone' => (string)($os['contato_telefone'] ?? ''),
+                'telefone'         => (string)($os['telefone'] ?? ''),
+                'celular'          => (string)($cliExtra['celular']   ?? ''),
+                'fone'             => (string)($cliExtra['fone']      ?? ''),
+                'telefone2'        => (string)($cliExtra['telefone2'] ?? ''),
+                'email'            => (string)($cliExtra['email'] ?? ''),
+                'cliente_id'       => $os['cliente_id'] ?? null,
+            ], $equipNome, $valorTotal);
+        } catch (Throwable $e) {
+            error_log("[OS {$osId}] notificação 'equipamento pronto' falhou: " . $e->getMessage());
         }
     }
 
