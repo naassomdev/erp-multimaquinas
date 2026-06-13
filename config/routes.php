@@ -270,6 +270,9 @@ return [
 
     ['GET',  '/alertas/retirada',                          [AlertaRetiradaController::class, 'index'],       [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['GET',  '/api/alertas/retirada/contadores',           [AlertaRetiradaController::class, 'contadores'],  [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['GET',  '/api/alertas/retirada/elegiveis-aviso',      [AlertaRetiradaController::class, 'elegiveisAviso'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['POST', '/api/alertas/retirada/preview-aviso',        [AlertaRetiradaController::class, 'previewAviso'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
+    ['POST', '/api/alertas/retirada/enviar-aviso',         [AlertaRetiradaController::class, 'enviarAviso'],  [AuthMiddleware::class, AdminRecepcaoMiddleware::class]],
     ['POST', '/api/alertas/retirada/{os_id}/notificar',    [AlertaRetiradaController::class, 'notificar'],   [AuthMiddleware::class, AdminRecepcaoMiddleware::class, CsrfMiddleware::class]],
     ['POST', '/api/alertas/retirada/{os_id}/comprovante',  [AlertaRetiradaController::class, 'comprovante'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class, CsrfMiddleware::class]],
     ['POST', '/api/alertas/retirada/{os_id}/equip/{equip_idx}/descarte', [AlertaRetiradaController::class, 'descarteEquipamento'], [AuthMiddleware::class, AdminRecepcaoMiddleware::class, CsrfMiddleware::class]],

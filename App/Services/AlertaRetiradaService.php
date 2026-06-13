@@ -404,4 +404,255 @@ final class AlertaRetiradaService
         }
         return null;
     }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  AVISOS DE RETIRADA EM LOTE
+    // ════════════════════════════════════════════════════════════════════
+
+    private const AVISO_INTERVALO_DIAS = 2;
+    private const AVISO_COOLDOWN_DIAS = 7;
+    private const AVISO_LOTE_MAX = 20;
+
+    /**
+     * Lista equipamentos elegíveis para aviso de retirada, agrupados por telefone.
+     *
+     * @return array<int, array{telefone:string, tel_digits:string, nome_cliente:string, cliente_id:int|null, equipamentos:array<int,array<string,mixed>>}>
+     */
+    public function listarElegiveisParaAviso(): array
+    {
+        $diasMin = self::AVISO_INTERVALO_DIAS;
+        $cooldown = self::AVISO_COOLDOWN_DIAS;
+
+        $sql = "
+            SELECT
+                eq.os_id,
+                eq.ordem_idx,
+                eq.nome AS equip_nome,
+                eq.fabricante,
+                eq.modelo,
+                eq.voltagem,
+                eq.status_equip_em AS pronto_em,
+                os.nome_cliente,
+                COALESCE(NULLIF(os.contato_telefone, ''), NULLIF(os.telefone, '')) AS telefone,
+                os.contato_nome,
+                os.cliente_id
+            FROM os_equipamento eq
+            INNER JOIN ordem_servico os ON os.id = eq.os_id
+            WHERE eq.status_equip = 'pronto'
+              AND os.status NOT IN ('retirado', 'descartado', 'cancelado')
+              AND eq.status_equip_em IS NOT NULL
+              AND eq.status_equip_em <= NOW() - INTERVAL {$diasMin} DAY
+              AND NOT EXISTS (
+                  SELECT 1 FROM notificacoes_retirada nr
+                   WHERE nr.os_id = eq.os_id
+                     AND (nr.equip_idx = eq.ordem_idx OR nr.equip_idx IS NULL)
+                     AND nr.tipo = 'whatsapp'
+                     AND nr.status_envio = 'enviado'
+                     AND nr.enviado_em >= NOW() - INTERVAL {$cooldown} DAY
+              )
+              AND COALESCE(NULLIF(os.contato_telefone, ''), NULLIF(os.telefone, '')) IS NOT NULL
+            ORDER BY os.nome_cliente ASC, eq.os_id ASC, eq.ordem_idx ASC";
+
+        $stmt = $this->pdo()->prepare($sql);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $porTelefone = [];
+        foreach ($rows as $row) {
+            $telDigits = preg_replace('/\D/', '', (string) ($row['telefone'] ?? '')) ?? '';
+            if ($telDigits === '') {
+                continue;
+            }
+
+            if (!isset($porTelefone[$telDigits])) {
+                $porTelefone[$telDigits] = [
+                    'telefone'     => (string) ($row['telefone'] ?? ''),
+                    'tel_digits'   => $telDigits,
+                    'nome_cliente' => (string) ($row['nome_cliente'] ?? ''),
+                    'cliente_id'   => $row['cliente_id'] !== null ? (int) $row['cliente_id'] : null,
+                    'equipamentos' => [],
+                ];
+            }
+
+            $porTelefone[$telDigits]['equipamentos'][] = [
+                'os_id'      => (string) $row['os_id'],
+                'ordem_idx'  => (int) $row['ordem_idx'],
+                'equip_nome' => (string) ($row['equip_nome'] ?? ''),
+                'fabricante' => (string) ($row['fabricante'] ?? ''),
+                'modelo'     => (string) ($row['modelo'] ?? ''),
+                'voltagem'   => (string) ($row['voltagem'] ?? ''),
+                'pronto_em'  => $row['pronto_em'],
+            ];
+        }
+
+        return array_values($porTelefone);
+    }
+
+    /**
+     * Monta a mensagem de aviso para um cliente.
+     */
+    public function montarMensagemAviso(string $nomeCliente, array $equipamentos): string
+    {
+        $tz = new \DateTimeZone('America/Sao_Paulo');
+        $hora = (int) (new \DateTime('now', $tz))->format('H');
+        $saudacao = match (true) {
+            $hora < 12 => 'Bom dia',
+            $hora < 18 => 'Boa tarde',
+            default => 'Boa noite',
+        };
+
+        $partes = preg_split('/\s+/u', mb_strtolower(trim($nomeCliente), 'UTF-8')) ?: [];
+        $primeiro = mb_convert_case((string) ($partes[0] ?? $nomeCliente), MB_CASE_TITLE, 'UTF-8');
+        if ($primeiro === '') {
+            $primeiro = 'tudo bem';
+        }
+
+        $cabecalho = "*{$saudacao}, {$primeiro}, tudo bem?*\n"
+            . "Carlos aqui, da Multimáquinas.\n\n";
+
+        $rodape = "\n\nQuando puder, pedimos por gentileza que combine a retirada conosco.\n"
+            . "Pode responder por aqui mesmo para confirmar o melhor horário.\n\n"
+            . "Obrigado.";
+
+        if (count($equipamentos) === 1) {
+            $eq = $equipamentos[0];
+            $desc = $this->descricaoEquipamento($eq);
+            return $cabecalho
+                . "Passando para lembrar que o equipamento abaixo já está pronto para retirada:\n\n"
+                . "*OS:* #{$eq['os_id']}\n"
+                . "*Equipamento:* {$desc}"
+                . $rodape;
+        }
+
+        $lista = '';
+        foreach ($equipamentos as $eq) {
+            $lista .= '• OS #' . $eq['os_id'] . ' — ' . $this->descricaoEquipamento($eq) . "\n";
+        }
+
+        return $cabecalho
+            . "Passando para lembrar que os equipamentos abaixo já estão prontos para retirada:\n\n"
+            . rtrim($lista)
+            . $rodape;
+    }
+
+    private function descricaoEquipamento(array $eq): string
+    {
+        $nome = mb_strtoupper(trim((string) ($eq['equip_nome'] ?? '')), 'UTF-8');
+        $extras = [];
+        foreach (['fabricante', 'modelo', 'voltagem'] as $campo) {
+            $valor = trim((string) ($eq[$campo] ?? ''));
+            if ($valor !== '') {
+                $extras[] = $valor;
+            }
+        }
+
+        return $nome . ($extras !== [] ? ' ' . implode(' ', $extras) : '');
+    }
+
+    /**
+     * Envia avisos em lote. Recebe array de clientes já validados pelo front.
+     *
+     * @param array<int, array{telefone:string, nome_cliente:string, equipamentos:array<int,array<string,mixed>>}> $selecionados
+     * @return array{enviados:int, falhas:int, sem_telefone:int, total:int, detalhes:array<int,array<string,mixed>>}
+     */
+    public function enviarAvisoLote(array $selecionados, int $usuarioId): array
+    {
+        if (count($selecionados) > self::AVISO_LOTE_MAX) {
+            $selecionados = array_slice($selecionados, 0, self::AVISO_LOTE_MAX);
+        }
+
+        $whatsapp = new WhatsappService($this->pdo());
+        $loteId = bin2hex(random_bytes(8));
+
+        $resultado = [
+            'enviados' => 0,
+            'falhas' => 0,
+            'sem_telefone' => 0,
+            'total' => count($selecionados),
+            'detalhes' => [],
+        ];
+
+        foreach ($selecionados as $cliente) {
+            $telefone = trim((string) ($cliente['telefone'] ?? ''));
+            $equipamentos = is_array($cliente['equipamentos'] ?? null) ? $cliente['equipamentos'] : [];
+
+            if ($telefone === '' || $equipamentos === []) {
+                $resultado['sem_telefone']++;
+                continue;
+            }
+
+            $mensagem = $this->montarMensagemAviso((string) ($cliente['nome_cliente'] ?? ''), $equipamentos);
+
+            // enviarTextoComRetorno nunca lança; ainda assim blindamos para que a falha
+            // de um cliente jamais aborte o lote inteiro nem derrube a tela (HTTP 500).
+            try {
+                $envio = $whatsapp->enviarTextoComRetorno($telefone, $mensagem);
+            } catch (Throwable $e) {
+                $envio = ['ok' => false, 'response' => null, 'erro' => $e->getMessage()];
+            }
+
+            $ok         = (bool) ($envio['ok'] ?? false);
+            $status     = $ok ? 'enviado' : 'falha';
+            $retornoApi = $envio['response'] ?? ($envio['erro'] ?? null);
+
+            foreach ($equipamentos as $eq) {
+                try {
+                    $this->registrarAvisoEquipamento(
+                        osId: (string) $eq['os_id'],
+                        equipIdx: (int) $eq['ordem_idx'],
+                        tipo: 'whatsapp',
+                        mensagem: $mensagem,
+                        usuarioId: $usuarioId,
+                        statusEnvio: $status,
+                        loteId: $loteId,
+                        retornoApi: $retornoApi,
+                    );
+                } catch (Throwable) {
+                    // Registro de histórico não deve quebrar o lote.
+                }
+            }
+
+            $ok ? $resultado['enviados']++ : $resultado['falhas']++;
+            $resultado['detalhes'][] = [
+                'nome' => (string) ($cliente['nome_cliente'] ?? ''),
+                'telefone' => $telefone,
+                'status' => $status,
+                'equipamentos' => count($equipamentos),
+            ];
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Registra uma entrada por equipamento em notificacoes_retirada.
+     */
+    public function registrarAvisoEquipamento(
+        string $osId,
+        int $equipIdx,
+        string $tipo,
+        string $mensagem,
+        int $usuarioId,
+        string $statusEnvio = 'enviado',
+        ?string $loteId = null,
+        mixed $retornoApi = null,
+        ?string $motivoIgnorado = null,
+    ): void {
+        $this->pdo()->prepare(
+            "INSERT INTO notificacoes_retirada
+                (os_id, equip_idx, tipo, mensagem, enviado_por, status_envio, lote_id, retorno_api, motivo_ignorado)
+             VALUES
+                (:os, :idx, :tipo, :msg, :uid, :status, :lote, :ret, :motivo)"
+        )->execute([
+            ':os' => $osId,
+            ':idx' => $equipIdx,
+            ':tipo' => $tipo,
+            ':msg' => $mensagem,
+            ':uid' => $usuarioId,
+            ':status' => $statusEnvio,
+            ':lote' => $loteId,
+            ':ret' => $retornoApi !== null ? json_encode($retornoApi, JSON_UNESCAPED_UNICODE) : null,
+            ':motivo' => $motivoIgnorado,
+        ]);
+    }
 }

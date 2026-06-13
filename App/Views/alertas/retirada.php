@@ -499,6 +499,26 @@ $temFiltrosAtivos = !empty($filtrosAtivos);
         </section>
     <?php endif; ?>
 
+    <?php /* ── PAINEL: AVISOS DE RETIRADA EM LOTE ─────────────────────────── */ ?>
+    <div class="card shadow-sm" id="painel-avisos-retirada">
+        <div class="card-header d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="ph ph-whatsapp-logo text-success fs-5"></i>
+                <strong>Avisos de Retirada via WhatsApp</strong>
+                <span class="badge bg-secondary" id="badge-elegiveis" style="display:none"></span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-success" id="btn-carregar-elegiveis">
+                <i class="ph ph-arrow-clockwise"></i> Carregar elegíveis
+            </button>
+        </div>
+        <div class="card-body" id="corpo-avisos">
+            <p class="text-body-secondary small mb-0">
+                Equipamentos <strong>prontos há pelo menos 2 dias</strong> e sem aviso WhatsApp nos últimos 7 dias.
+                Clique em "Carregar elegíveis" para ver a lista.
+            </p>
+        </div>
+    </div>
+
 </div>
 
 <!-- Modal: Registrar Ligacao -->
@@ -544,6 +564,33 @@ $temFiltrosAtivos = !empty($filtrosAtivos);
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="btnSalvarComprovante">Enviar Comprovante</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Preview de Aviso -->
+<div class="modal fade" id="modalPreviewAviso" tabindex="-1" aria-labelledby="modalPreviewAvisoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPreviewAvisoLabel">
+                    <i class="ph ph-eye me-1"></i> Preview da mensagem
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-body-secondary small mb-2">
+                    <strong>Para:</strong> <span id="preview-nome"></span>
+                    &nbsp;&middot;&nbsp;
+                    <span id="preview-tel"></span>
+                </p>
+                <pre id="preview-mensagem"
+                     class="border rounded p-3 bg-light"
+                     style="white-space:pre-wrap;word-break:break-word;font-size:.85rem;max-height:400px;overflow-y:auto"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>
@@ -740,4 +787,246 @@ document.querySelectorAll('[data-role="toggle-group"]').forEach(btn => {
         btn.innerHTML = '<i class="ph ph-caret-down"></i> Mostrar equipamentos';
     });
 });
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    const CSRF_AVISO = <?= json_encode($csrfToken) ?>;
+    const btnCarregar = document.getElementById('btn-carregar-elegiveis');
+    const corpoAvisos = document.getElementById('corpo-avisos');
+    const badgeElegiveis = document.getElementById('badge-elegiveis');
+    const modalPreviewEl = document.getElementById('modalPreviewAviso');
+    const modalPreview = modalPreviewEl ? new bootstrap.Modal(modalPreviewEl) : null;
+    let dadosElegiveis = [];
+
+    if (!btnCarregar || !corpoAvisos) {
+        return;
+    }
+
+    btnCarregar.addEventListener('click', carregarElegiveis);
+
+    async function carregarElegiveis() {
+        btnCarregar.disabled = true;
+        btnCarregar.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Carregando...';
+
+        try {
+            const res = await fetch('/api/alertas/retirada/elegiveis-aviso', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (!data.ok) {
+                throw new Error(data.error || 'Erro ao carregar');
+            }
+
+            dadosElegiveis = data.clientes || [];
+            renderizarLista();
+        } catch (err) {
+            corpoAvisos.innerHTML = `<div class="alert alert-danger mb-0">Erro: ${esc(err.message)}</div>`;
+        } finally {
+            btnCarregar.disabled = false;
+            btnCarregar.innerHTML = '<i class="ph ph-arrow-clockwise"></i> Recarregar';
+        }
+    }
+
+    function renderizarLista(resultadoHtml = '') {
+        if (dadosElegiveis.length === 0) {
+            corpoAvisos.innerHTML = `
+                ${resultadoHtml}
+                <div class="alert alert-success mb-0">
+                    <i class="ph ph-check-circle me-1"></i>Nenhum equipamento elegível no momento.
+                </div>`;
+            if (badgeElegiveis) {
+                badgeElegiveis.style.display = 'none';
+            }
+            return;
+        }
+
+        if (badgeElegiveis) {
+            badgeElegiveis.textContent = String(dadosElegiveis.length);
+            badgeElegiveis.style.display = '';
+        }
+
+        let html = `
+            ${resultadoHtml}
+            <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-select-all">Selecionar todos</button>
+                <button type="button" class="btn btn-sm btn-success" id="btn-enviar-lote" disabled>
+                    <i class="ph ph-paper-plane-tilt me-1"></i>Enviar selecionados (<span id="qtd-sel">0</span>)
+                </button>
+                <div id="resultado-envio" class="ms-2 small" style="display:none"></div>
+            </div>
+            <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle" id="tabela-avisos">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:38px"><input type="checkbox" id="chk-all" title="Todos"></th>
+                        <th>Cliente</th>
+                        <th>Telefone</th>
+                        <th>Equipamentos</th>
+                        <th style="width:110px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        dadosElegiveis.forEach((cliente, idx) => {
+            const equipResumo = (cliente.equipamentos || []).map(eq => {
+                const partes = [
+                    String(eq.equip_nome || '').toUpperCase(),
+                    eq.fabricante || '',
+                    eq.modelo || ''
+                ].filter(Boolean).join(' ');
+                return `OS #${esc(eq.os_id)} — ${esc(partes)}`;
+            }).join('<br>');
+
+            html += `
+                <tr data-idx="${idx}">
+                    <td><input type="checkbox" class="chk-cliente" data-idx="${idx}"></td>
+                    <td class="fw-semibold">${esc(cliente.nome_cliente)}</td>
+                    <td><code>${esc(cliente.telefone)}</code></td>
+                    <td class="small text-muted">${equipResumo}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-preview-aviso" data-idx="${idx}" title="Ver mensagem">
+                            <i class="ph ph-eye"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+        corpoAvisos.innerHTML = html;
+        bindEventosLista();
+    }
+
+    function bindEventosLista() {
+        document.getElementById('chk-all')?.addEventListener('change', function () {
+            document.querySelectorAll('.chk-cliente').forEach(c => {
+                c.checked = this.checked;
+            });
+            atualizarContador();
+        });
+
+        document.getElementById('btn-select-all')?.addEventListener('click', () => {
+            const todos = [...document.querySelectorAll('.chk-cliente')];
+            const selecionar = todos.every(c => !c.checked);
+            todos.forEach(c => {
+                c.checked = selecionar;
+            });
+            const chkAll = document.getElementById('chk-all');
+            if (chkAll) {
+                chkAll.checked = selecionar;
+            }
+            atualizarContador();
+        });
+
+        document.querySelectorAll('.chk-cliente').forEach(c => c.addEventListener('change', atualizarContador));
+        document.getElementById('btn-enviar-lote')?.addEventListener('click', enviarLote);
+        document.querySelectorAll('.btn-preview-aviso').forEach(btn => {
+            btn.addEventListener('click', () => abrirPreview(parseInt(btn.dataset.idx || '0', 10)));
+        });
+    }
+
+    function atualizarContador() {
+        const selecionados = document.querySelectorAll('.chk-cliente:checked').length;
+        const qtd = document.getElementById('qtd-sel');
+        const btn = document.getElementById('btn-enviar-lote');
+        if (qtd) {
+            qtd.textContent = String(selecionados);
+        }
+        if (btn) {
+            btn.disabled = selecionados === 0;
+        }
+    }
+
+    async function abrirPreview(idx) {
+        const cliente = dadosElegiveis[idx];
+        if (!cliente || !modalPreview) {
+            return;
+        }
+
+        document.getElementById('preview-nome').textContent = cliente.nome_cliente || '';
+        document.getElementById('preview-tel').textContent = cliente.telefone || '';
+        document.getElementById('preview-mensagem').textContent = 'Carregando...';
+        modalPreview.show();
+
+        try {
+            const res = await fetch('/api/alertas/retirada/preview-aviso', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                    _csrf: CSRF_AVISO,
+                    nome_cliente: cliente.nome_cliente,
+                    equipamentos: cliente.equipamentos
+                })
+            });
+            const data = await res.json();
+            document.getElementById('preview-mensagem').textContent = data.ok ? data.mensagem : 'Erro ao gerar preview.';
+        } catch {
+            document.getElementById('preview-mensagem').textContent = 'Erro de rede.';
+        }
+    }
+
+    async function enviarLote() {
+        const selecionados = [...document.querySelectorAll('.chk-cliente:checked')]
+            .map(c => dadosElegiveis[parseInt(c.dataset.idx || '0', 10)])
+            .filter(Boolean);
+
+        if (selecionados.length === 0) {
+            return;
+        }
+
+        if (!confirm(`Confirmar envio de avisos para ${selecionados.length} cliente(s) via WhatsApp?\n\nEsta ação não pode ser desfeita.`)) {
+            return;
+        }
+
+        const btn = document.getElementById('btn-enviar-lote');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enviando...';
+        }
+
+        try {
+            const res = await fetch('/api/alertas/retirada/enviar-aviso', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ _csrf: CSRF_AVISO, clientes: selecionados })
+            });
+            const data = await res.json();
+            if (!data.ok) {
+                throw new Error(data.error || 'Erro no envio');
+            }
+
+            const r = data.resultado || {};
+            const resultadoHtml = `
+                <div class="alert alert-light border mb-3">
+                    <span class="text-success fw-semibold"><i class="ph ph-check-circle"></i> ${Number(r.enviados || 0)} enviado(s)</span>
+                    ${Number(r.falhas || 0) > 0 ? `&nbsp;&middot;&nbsp;<span class="text-danger">${Number(r.falhas || 0)} falha(s)</span>` : ''}
+                    ${Number(r.sem_telefone || 0) > 0 ? `&nbsp;&middot;&nbsp;<span class="text-warning">${Number(r.sem_telefone || 0)} sem telefone</span>` : ''}
+                </div>`;
+
+            await carregarElegiveis();
+            renderizarLista(resultadoHtml);
+        } catch (err) {
+            const resultado = document.getElementById('resultado-envio');
+            if (resultado) {
+                resultado.innerHTML = `<span class="text-danger"><i class="ph ph-x-circle"></i> Erro: ${esc(err.message)}</span>`;
+                resultado.style.display = '';
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-paper-plane-tilt me-1"></i>Enviar selecionados (<span id="qtd-sel">0</span>)';
+            }
+        }
+    }
+
+    function esc(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+})();
 </script>

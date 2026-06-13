@@ -138,4 +138,67 @@ final class AlertaRetiradaController
     {
         return Response::json($this->service->contarAlertas());
     }
+
+    /**
+     * GET /api/alertas/retirada/elegiveis-aviso
+     * Lista clientes/equipamentos elegíveis para aviso de retirada em lote.
+     */
+    public function elegiveisAviso(Request $request): Response
+    {
+        $clientes = $this->service->listarElegiveisParaAviso();
+
+        return Response::json([
+            'ok' => true,
+            'clientes' => $clientes,
+            'total' => count($clientes),
+        ]);
+    }
+
+    /**
+     * POST /api/alertas/retirada/preview-aviso
+     * Retorna preview da mensagem sem enviar.
+     */
+    public function previewAviso(Request $request): Response
+    {
+        if (!Csrf::check((string) $request->input('_csrf', ''))) {
+            return Response::json(['ok' => false, 'error' => 'Token de segurança inválido.'], 403);
+        }
+
+        $nome = trim((string) $request->input('nome_cliente', ''));
+        $equipamentos = $request->input('equipamentos', []);
+
+        if ($nome === '' || !is_array($equipamentos) || $equipamentos === []) {
+            return Response::json(['ok' => false, 'error' => 'Dados insuficientes.'], 400);
+        }
+
+        $mensagem = $this->service->montarMensagemAviso($nome, $equipamentos);
+
+        return Response::json([
+            'ok' => true,
+            'mensagem' => $mensagem,
+        ]);
+    }
+
+    /**
+     * POST /api/alertas/retirada/enviar-aviso
+     * Envia avisos em lote via WhatsApp.
+     */
+    public function enviarAviso(Request $request): Response
+    {
+        if (!Csrf::check((string) $request->input('_csrf', ''))) {
+            return Response::json(['ok' => false, 'error' => 'Token de segurança inválido.'], 403);
+        }
+
+        $selecionados = $request->input('clientes', []);
+        if (!is_array($selecionados) || $selecionados === []) {
+            return Response::json(['ok' => false, 'error' => 'Nenhum cliente selecionado.'], 400);
+        }
+
+        $resultado = $this->service->enviarAvisoLote($selecionados, (int) Auth::id());
+
+        return Response::json([
+            'ok' => true,
+            'resultado' => $resultado,
+        ]);
+    }
 }
